@@ -3,506 +3,2706 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+
 <title>Highway Rush</title>
+
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#10161b;color:white;font-family:Arial,sans-serif;touch-action:none}
-canvas{position:fixed;inset:0;width:100%;height:100%}
-button{border:0;border-radius:11px;padding:13px 22px;margin:5px;background:#df3038;color:white;font-weight:900;font-size:15px}
-button.secondary{background:#303940}
-.screen{position:fixed;inset:0;z-index:20;background:rgba(7,10,13,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:auto}
-.hidden{display:none!important}
-.logo{font-size:43px;font-weight:1000;font-style:italic;line-height:.84;text-align:center;text-shadow:3px 3px #80171d,0 0 20px #e52b35}
-.subtitle{margin:17px 0 22px;opacity:.45;letter-spacing:4px;font-size:10px}
-#hud{position:fixed;z-index:5;top:12px;left:12px;right:60px;display:flex;justify-content:space-between;pointer-events:none}
-.hudBox{background:#0009;border-radius:9px;padding:7px 12px;min-width:85px}
-.hudTitle{font-size:9px;opacity:.5;letter-spacing:2px}
-.hudValue{font-size:21px;font-weight:900}
-#pauseBtn{position:fixed;z-index:6;right:10px;top:10px;width:42px;height:42px;padding:0;border-radius:50%;background:#0009}
-.form{width:min(94%,400px);background:#181e24;border:1px solid #303840;border-radius:16px;padding:22px;text-align:center}
-input,textarea{width:100%;padding:13px;margin:5px 0;background:#0b0f12;color:white;border:1px solid #3b454d;border-radius:9px;outline:none}
-textarea{height:75px;resize:none}
-.profileCard{width:min(94%,450px)}
-.banner{height:155px;position:relative;border:3px solid #6e777e;border-radius:14px;background:linear-gradient(135deg,#304b60,#131a20);box-shadow:0 10px 30px #0009;overflow:visible}
-.playerName{position:absolute;left:108px;right:8px;top:10px;font-size:clamp(28px,8vw,45px);font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;text-shadow:3px 3px 6px #000}
-.avatar{position:absolute;left:12px;bottom:-23px;width:90px;height:90px;border-radius:10px;border:4px solid white;background:#303a42;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 15px #000b;cursor:pointer;z-index:5}
-.avatar img{width:100%;height:100%;object-fit:cover;display:block}
-.avatarPlaceholder{font-size:10px;font-weight:900;line-height:1.4;text-align:center;letter-spacing:1px;opacity:.65}
-.profileStats{margin-top:38px;display:flex;gap:10px}
-.stat,.rankStat{flex:1;min-height:82px;background:#ffffff09;border:1px solid #ffffff14;border-radius:11px}
-.stat{padding:12px;display:flex;flex-direction:column;justify-content:center;text-align:left}
-.statTitle,.rankSmall{font-size:9px;opacity:.45;letter-spacing:2px}
-.statValue{font-size:22px;font-weight:900;margin-top:5px}
-.rankStat{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px}
-.rankLogo{width:48px;height:48px;position:relative;flex:none}
-.rankInfo{text-align:left}
-.rankName{font-size:12px;font-weight:900;margin-top:3px}
-.rankBadge{position:absolute;inset:3px;filter:drop-shadow(0 4px 4px #000c)}
-.bronze{background:linear-gradient(145deg,#ffd29a,#ad531d,#61240f);clip-path:polygon(15% 4%,85% 4%,97% 30%,88% 78%,50% 97%,12% 78%,3% 30%)}
-.silver{background:linear-gradient(145deg,#fff,#9da5ac,#555d64);clip-path:polygon(12% 5%,88% 5%,100% 50%,88% 95%,12% 95%,0 50%)}
-.gold{background:linear-gradient(145deg,#fff4a0,#e2a200,#865400);clip-path:polygon(50% 0,61% 25%,92% 25%,68% 45%,77% 82%,50% 62%,23% 82%,32% 45%,8% 25%,39% 25%)}
-.platinum{background:linear-gradient(145deg,#e2ffff,#4baeb9,#205965);clip-path:polygon(20% 0,80% 0,100% 31%,87% 82%,50% 100%,13% 82%,0 31%)}
-.diamond{background:linear-gradient(145deg,#f1caff,#8c49d1,#303d9b);clip-path:polygon(50% 0,88% 24%,100% 55%,73% 100%,27% 100%,0 55%,12% 24%)}
-.master{background:linear-gradient(145deg,#fff1a0,#c82d33 45%,#71151a);clip-path:polygon(50% 0,70% 12%,94% 7%,90% 35%,100% 55%,76% 68%,69% 100%,50% 82%,31% 100%,24% 68%,0 55%,10% 35%,6% 7%,30% 12%)}
-.bio{margin-top:10px;padding:12px;border-radius:10px;background:#ffffff09;border:1px solid #ffffff14;text-align:left}
-.bioHeader{display:flex;align-items:center;justify-content:space-between}
-.bioTitle{font-size:9px;opacity:.45;letter-spacing:2px}
-.editBio{margin:0;padding:5px 9px;font-size:10px;background:#303840}
-.bioText{font-size:14px;font-weight:700;margin-top:7px;word-break:break-word}
-.carShow{height:185px;margin-top:10px;border-radius:13px;background:#ffffff06;border:1px solid #ffffff12;position:relative;display:grid;place-items:center;overflow:hidden}
-.carShadow{position:absolute;bottom:33px;width:125px;height:18px;border-radius:50%;background:#000;filter:blur(6px);opacity:.7}
-.profileCar{position:absolute;width:65px;height:112px;border-radius:17px;background:#d82c35;box-shadow:0 12px 20px #000;animation:float 2s infinite ease-in-out}
-.profileCar:before{content:"";position:absolute;left:13px;top:13px;width:39px;height:38px;border-radius:8px;background:#193340}
-.profileCar:after{content:"";position:absolute;left:10px;right:10px;bottom:13px;height:7px;border-radius:5px;background:#fff0a0}
-@keyframes float{50%{transform:translateY(-8px) rotate(2deg)}}
-.rankList{width:min(94%,430px)}
-.rankItem{display:flex;align-items:center;gap:10px;padding:10px;margin:6px 0;background:#181e24;border:1px solid #303840;border-radius:11px;text-align:left}
-.rankNumber{width:25px;font-weight:900}
-.rankAvatar{width:42px;height:42px;border-radius:7px;background:#303840;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.rankAvatar img{width:100%;height:100%;object-fit:cover}
-.rankPlayer{flex:1;font-weight:900}.rankScore{opacity:.7}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#10161b;
+    color:white;
+    font-family:Arial,sans-serif;
+    touch-action:none;
+}
+
+canvas{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+}
+
+button{
+    border:0;
+    border-radius:11px;
+    padding:13px 22px;
+    margin:5px;
+    background:#df3038;
+    color:white;
+    font-weight:900;
+    font-size:15px;
+}
+
+button.secondary{
+    background:#303940;
+}
+
+.screen{
+    position:fixed;
+    inset:0;
+    z-index:20;
+    background:rgba(7,10,13,.97);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    overflow:auto;
+}
+
+.hidden{
+    display:none!important;
+}
+
+/* LOGO */
+
+.logo{
+    font-size:43px;
+    font-weight:1000;
+    font-style:italic;
+    line-height:.84;
+    text-align:center;
+    text-shadow:3px 3px #80171d,0 0 20px #e52b35;
+}
+
+.subtitle{
+    margin:17px 0 22px;
+    opacity:.45;
+    letter-spacing:4px;
+    font-size:10px;
+}
+
+/* HUD */
+
+#hud{
+    position:fixed;
+    z-index:5;
+    top:12px;
+    left:12px;
+    right:60px;
+    display:flex;
+    justify-content:space-between;
+    pointer-events:none;
+}
+
+.hudBox{
+    background:#0009;
+    border-radius:9px;
+    padding:7px 12px;
+    min-width:85px;
+}
+
+.hudTitle{
+    font-size:9px;
+    opacity:.5;
+    letter-spacing:2px;
+}
+
+.hudValue{
+    font-size:21px;
+    font-weight:900;
+}
+
+#pauseBtn{
+    position:fixed;
+    z-index:6;
+    right:10px;
+    top:10px;
+    width:42px;
+    height:42px;
+    padding:0;
+    border-radius:50%;
+    background:#0009;
+}
+
+/* FORM */
+
+.form{
+    width:min(94%,400px);
+    background:#181e24;
+    border:1px solid #303840;
+    border-radius:16px;
+    padding:22px;
+    text-align:center;
+}
+
+input,textarea{
+    width:100%;
+    padding:13px;
+    margin:5px 0;
+    background:#0b0f12;
+    color:white;
+    border:1px solid #3b454d;
+    border-radius:9px;
+    outline:none;
+}
+
+textarea{
+    height:75px;
+    resize:none;
+}
+
+/* PERFIL */
+
+.profileCard{
+    width:min(94%,450px);
+}
+
+.banner{
+    height:155px;
+    position:relative;
+    border:3px solid #6e777e;
+    border-radius:14px;
+    background:linear-gradient(135deg,#304b60,#131a20);
+    box-shadow:0 10px 30px #0009;
+    overflow:visible;
+}
+
+.playerName{
+    position:absolute;
+    left:108px;
+    right:8px;
+    top:10px;
+
+    font-size:clamp(28px,8vw,45px);
+    font-weight:1000;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+
+    text-align:left;
+    text-shadow:3px 3px 6px #000;
+}
+
+/* AVATAR */
+
+.avatar{
+    position:absolute;
+    left:12px;
+    bottom:-23px;
+
+    width:90px;
+    height:90px;
+
+    border-radius:10px;
+    border:4px solid white;
+
+    background:#303a42;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    overflow:hidden;
+
+    box-shadow:0 6px 15px #000b;
+
+    cursor:pointer;
+
+    z-index:5;
+}
+
+.avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.avatarPlaceholder{
+    font-size:10px;
+    font-weight:900;
+    line-height:1.4;
+    text-align:center;
+    letter-spacing:1px;
+    opacity:.65;
+}
+
+/* STATS */
+
+.profileStats{
+    margin-top:38px;
+    display:flex;
+    gap:10px;
+}
+
+.stat,.rankStat{
+    flex:1;
+    min-height:82px;
+
+    background:#ffffff09;
+    border:1px solid #ffffff14;
+    border-radius:11px;
+}
+
+.stat{
+    padding:12px;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+
+    text-align:left;
+}
+
+.statTitle,.rankSmall{
+    font-size:9px;
+    opacity:.45;
+    letter-spacing:2px;
+}
+
+.statValue{
+    font-size:22px;
+    font-weight:900;
+    margin-top:5px;
+}
+
+.rankStat{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:8px;
+}
+
+.rankLogo{
+    width:48px;
+    height:48px;
+    position:relative;
+    flex:none;
+}
+
+.rankInfo{
+    text-align:left;
+}
+
+.rankName{
+    font-size:12px;
+    font-weight:900;
+    margin-top:3px;
+}
+
+/* PATENTES */
+
+.rankBadge{
+    position:absolute;
+    inset:3px;
+    filter:drop-shadow(0 4px 4px #000c);
+}
+
+.bronze{
+    background:linear-gradient(145deg,#ffd29a,#ad531d,#61240f);
+
+    clip-path:polygon(
+        15% 4%,85% 4%,97% 30%,88% 78%,
+        50% 97%,12% 78%,3% 30%
+    );
+}
+
+.silver{
+    background:linear-gradient(145deg,#fff,#9da5ac,#555d64);
+
+    clip-path:polygon(
+        12% 5%,88% 5%,100% 50%,
+        88% 95%,12% 95%,0 50%
+    );
+}
+
+.gold{
+    background:linear-gradient(145deg,#fff4a0,#e2a200,#865400);
+
+    clip-path:polygon(
+        50% 0,61% 25%,92% 25%,68% 45%,
+        77% 82%,50% 62%,23% 82%,32% 45%,
+        8% 25%,39% 25%
+    );
+}
+
+.platinum{
+    background:linear-gradient(145deg,#e2ffff,#4baeb9,#205965);
+
+    clip-path:polygon(
+        20% 0,80% 0,100% 31%,87% 82%,
+        50% 100%,13% 82%,0 31%
+    );
+}
+
+.diamond{
+    background:linear-gradient(145deg,#f1caff,#8c49d1,#303d9b);
+
+    clip-path:polygon(
+        50% 0,88% 24%,100% 55%,73% 100%,
+        27% 100%,0 55%,12% 24%
+    );
+}
+
+.master{
+    background:linear-gradient(145deg,#fff1a0,#c82d33 45%,#71151a);
+
+    clip-path:polygon(
+        50% 0,70% 12%,94% 7%,90% 35%,
+        100% 55%,76% 68%,69% 100%,
+        50% 82%,31% 100%,24% 68%,
+        0 55%,10% 35%,6% 7%,30% 12%
+    );
+}
+
+/* BIO */
+
+.bio{
+    margin-top:10px;
+
+    padding:12px;
+
+    border-radius:10px;
+
+    background:#ffffff09;
+    border:1px solid #ffffff14;
+
+    text-align:left;
+}
+
+.bioHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.bioTitle{
+    font-size:9px;
+    opacity:.45;
+    letter-spacing:2px;
+}
+
+.editBio{
+    margin:0;
+    padding:5px 9px;
+    font-size:10px;
+    background:#303840;
+}
+
+.bioText{
+    font-size:14px;
+    font-weight:700;
+    margin-top:7px;
+    word-break:break-word;
+}
+
+/* CARRO DO PERFIL */
+
+.carShow{
+    height:185px;
+
+    margin-top:10px;
+
+    border-radius:13px;
+
+    background:#ffffff06;
+    border:1px solid #ffffff12;
+
+    position:relative;
+
+    display:grid;
+    place-items:center;
+
+    overflow:hidden;
+}
+
+.carShadow{
+    position:absolute;
+
+    bottom:33px;
+
+    width:125px;
+    height:18px;
+
+    border-radius:50%;
+
+    background:#000;
+
+    filter:blur(6px);
+
+    opacity:.7;
+}
+
+.profileCar{
+    position:absolute;
+
+    width:65px;
+    height:112px;
+
+    border-radius:17px;
+
+    background:#d82c35;
+
+    box-shadow:0 12px 20px #000;
+
+    animation:float 2s infinite ease-in-out;
+}
+
+.profileCar:before{
+    content:"";
+
+    position:absolute;
+
+    left:13px;
+    top:13px;
+
+    width:39px;
+    height:38px;
+
+    border-radius:8px;
+
+    background:#193340;
+}
+
+.profileCar:after{
+    content:"";
+
+    position:absolute;
+
+    left:10px;
+    right:10px;
+    bottom:13px;
+
+    height:7px;
+
+    border-radius:5px;
+
+    background:#fff0a0;
+}
+
+@keyframes float{
+
+    50%{
+        transform:translateY(-8px) rotate(2deg);
+    }
+
+}
+
+/* RANKING */
+
+.rankList{
+    width:min(94%,430px);
+}
+
+.rankItem{
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    padding:10px;
+    margin:6px 0;
+
+    background:#181e24;
+    border:1px solid #303840;
+
+    border-radius:11px;
+
+    text-align:left;
+}
+
+.rankNumber{
+    width:25px;
+    font-weight:900;
+}
+
+.rankAvatar{
+    width:42px;
+    height:42px;
+
+    border-radius:7px;
+
+    background:#303840;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    overflow:hidden;
+}
+
+.rankAvatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.rankPlayer{
+    flex:1;
+    font-weight:900;
+}
+
+.rankScore{
+    opacity:.7;
+}
+
 </style>
 </head>
+
 <body>
+
 <canvas id="game"></canvas>
 
 <div id="hud">
-<div class="hudBox"><div class="hudTitle">PONTOS</div><div class="hudValue" id="score">0</div></div>
-<div class="hudBox"><div class="hudTitle">MOEDAS</div><div class="hudValue" id="coins">0</div></div>
+
+    <div class="hudBox">
+        <div class="hudTitle">PONTOS</div>
+        <div class="hudValue" id="score">0</div>
+    </div>
+
+    <div class="hudBox">
+        <div class="hudTitle">MOEDAS</div>
+        <div class="hudValue" id="coins">0</div>
+    </div>
+
 </div>
+
 <button id="pauseBtn">Ⅱ</button>
 
+
+<!-- CRIAR CONTA -->
+
 <div id="register" class="screen">
-<div class="form">
-<h2>CRIAR CONTA</h2>
-<p style="opacity:.5;margin:10px 0">Crie seu perfil de teste.</p>
-<input id="nameInput" maxlength="18" placeholder="Nome do jogador" autocomplete="nickname">
-<textarea id="bioInput" maxlength="80" placeholder="Sua bio..."></textarea>
-<button id="createBtn">CRIAR CONTA</button>
+
+    <div class="form">
+
+        <h2>CRIAR CONTA</h2>
+
+        <p style="opacity:.5;margin:10px 0">
+            Crie seu perfil de teste.
+        </p>
+
+        <input
+            id="nameInput"
+            maxlength="18"
+            placeholder="Nome do jogador">
+
+        <textarea
+            id="bioInput"
+            maxlength="80"
+            placeholder="Sua bio..."></textarea>
+
+        <button onclick="createAccount()">
+            CRIAR CONTA
+        </button>
+
+    </div>
+
 </div>
-</div>
+
+
+<!-- MENU -->
 
 <div id="menu" class="screen hidden">
-<div class="logo">HIGHWAY<br>RUSH</div>
-<div class="subtitle">DRIVE • DODGE • SURVIVE</div>
-<button id="playBtn">JOGAR</button>
-<button class="secondary" id="profileBtn">PERFIL</button>
-<button class="secondary" id="rankingBtn">RANKING</button>
-<button class="secondary" id="searchBtn">PESQUISAR ID</button>
+
+    <div class="logo">
+        HIGHWAY<br>
+        RUSH
+    </div>
+
+    <div class="subtitle">
+        DRIVE • DODGE • SURVIVE
+    </div>
+
+    <button onclick="start()">
+        JOGAR
+    </button>
+
+    <button class="secondary" onclick="openProfile()">
+        PERFIL
+    </button>
+
+    <button class="secondary" onclick="openRanking()">
+        RANKING
+    </button>
+
+    <button class="secondary" onclick="openSearch()">
+        PESQUISAR ID
+    </button>
+
 </div>
+
+
+<!-- BATIDA -->
 
 <div id="over" class="screen hidden">
-<div class="logo" style="font-size:38px">BATIDA!</div>
-<p style="margin:18px">Pontuação: <b id="final">0</b></p>
-<button id="againBtn">JOGAR NOVAMENTE</button>
-<button class="secondary" id="overMenuBtn">MENU</button>
+
+    <div class="logo" style="font-size:38px">
+        BATIDA!
+    </div>
+
+    <p style="margin:18px">
+        Pontuação:
+        <b id="final">0</b>
+    </p>
+
+    <button onclick="start()">
+        JOGAR NOVAMENTE
+    </button>
+
+    <button class="secondary" onclick="goMenu()">
+        MENU
+    </button>
+
 </div>
+
+
+<!-- PAUSE -->
 
 <div id="pause" class="screen hidden">
-<div class="logo" style="font-size:35px">PAUSADO</div>
-<button id="resumeBtn">CONTINUAR</button>
-<button class="secondary" id="pauseMenuBtn">MENU</button>
+
+    <div class="logo" style="font-size:35px">
+        PAUSADO
+    </div>
+
+    <button onclick="resumeGame()">
+        CONTINUAR
+    </button>
+
+    <button class="secondary" onclick="goMenu()">
+        MENU
+    </button>
+
 </div>
+
+
+<!-- PERFIL -->
 
 <div id="profile" class="screen hidden">
-<div class="profileCard">
-<div class="banner">
-<div class="playerName" id="profileName">Nicollas</div>
-<div class="avatar" id="avatarButton">
-<span id="avatarPlaceholder" class="avatarPlaceholder">TOQUE PARA<br>ALTERAR</span>
-<img id="avatarImage" style="display:none" alt="Avatar">
-</div>
-</div>
-<input type="file" id="avatarInput" accept="image/*" style="display:none">
 
-<div class="profileStats">
-<div class="stat">
-<div class="statTitle">RECORDE</div>
-<div class="statValue" id="profileRecord">0</div>
-</div>
-<div class="rankStat">
-<div class="rankLogo" id="profileRankLogo"></div>
-<div class="rankInfo">
-<div class="rankSmall">PATENTE</div>
-<div class="rankName" id="profileRankName">BRONZE</div>
-</div>
-</div>
+    <div class="profileCard">
+
+        <div class="banner">
+
+            <div
+                class="playerName"
+                id="profileName">
+                Nicollas
+            </div>
+
+            <!-- AVATAR -->
+            <div
+                class="avatar"
+                onclick="chooseAvatar()">
+
+                <span
+                    id="avatarPlaceholder"
+                    class="avatarPlaceholder">
+                    TOQUE PARA<br>
+                    ALTERAR
+                </span>
+
+                <img
+                    id="avatarImage"
+                    style="display:none"
+                    alt="Avatar">
+
+            </div>
+
+        </div>
+
+
+        <!-- INPUT DA GALERIA -->
+
+        <input
+            type="file"
+            id="avatarInput"
+            accept="image/*"
+            style="display:none">
+
+
+        <!-- RECORD / PATENTE -->
+
+        <div class="profileStats">
+
+            <div class="stat">
+
+                <div class="statTitle">
+                    RECORDE
+                </div>
+
+                <div
+                    class="statValue"
+                    id="profileRecord">
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="rankStat">
+
+                <div
+                    class="rankLogo"
+                    id="profileRankLogo">
+                </div>
+
+                <div class="rankInfo">
+
+                    <div class="rankSmall">
+                        PATENTE
+                    </div>
+
+                    <div
+                        class="rankName"
+                        id="profileRankName">
+                        BRONZE
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- BIO -->
+
+        <div class="bio">
+
+            <div class="bioHeader">
+
+                <div class="bioTitle">
+                    BIO
+                </div>
+
+                <button
+                    class="editBio"
+                    onclick="editBio()">
+                    EDITAR
+                </button>
+
+            </div>
+
+            <div
+                class="bioText"
+                id="profileBio">
+                Nenhuma bio definida.
+            </div>
+
+        </div>
+
+
+        <!-- CARRO -->
+
+        <div class="carShow">
+
+            <div class="carShadow"></div>
+
+            <div class="profileCar"></div>
+
+        </div>
+
+
+        <button
+            class="secondary"
+            onclick="closeProfile()">
+            VOLTAR
+        </button>
+
+    </div>
+
 </div>
 
-<div class="bio">
-<div class="bioHeader">
-<div class="bioTitle">BIO</div>
-<button class="editBio" id="editBioBtn">EDITAR</button>
-</div>
-<div class="bioText" id="profileBio">Nenhuma bio definida.</div>
-</div>
 
-<div class="carShow"><div class="carShadow"></div><div class="profileCar"></div></div>
-<button class="secondary" id="profileBackBtn">VOLTAR</button>
-</div>
-</div>
+<!-- PESQUISAR ID -->
 
 <div id="search" class="screen hidden">
-<div class="form">
-<h2>PESQUISAR ID</h2>
-<p style="opacity:.5;font-size:12px;margin:10px">Digite o ID do jogador.</p>
-<input id="searchInput" placeholder="#ABC12345" autocomplete="off">
-<button id="searchPlayerBtn">PESQUISAR</button>
-<div id="searchResult"></div>
-<button class="secondary" id="searchBackBtn">VOLTAR</button>
+
+    <div class="form">
+
+        <h2>PESQUISAR ID</h2>
+
+        <p style="opacity:.5;font-size:12px;margin:10px">
+            Digite o ID do jogador.
+        </p>
+
+        <input
+            id="searchInput"
+            placeholder="#ABC12345">
+
+        <button onclick="searchPlayer()">
+            PESQUISAR
+        </button>
+
+        <div id="searchResult"></div>
+
+        <button
+            class="secondary"
+            onclick="closeSearch()">
+            VOLTAR
+        </button>
+
+    </div>
+
 </div>
-</div>
+
+
+<!-- RANKING -->
 
 <div id="ranking" class="screen hidden">
-<div class="logo" style="font-size:34px">RANKING</div>
-<div class="subtitle">MAIORES RECORDES</div>
-<div class="rankList" id="rankList"></div>
-<button class="secondary" id="rankingBackBtn">VOLTAR</button>
+
+    <div class="logo" style="font-size:34px">
+        RANKING
+    </div>
+
+    <div class="subtitle">
+        MAIORES RECORDES
+    </div>
+
+    <div
+        class="rankList"
+        id="rankList">
+    </div>
+
+    <button
+        class="secondary"
+        onclick="closeRanking()">
+        VOLTAR
+    </button>
+
 </div>
 
+
 <script>
-"use strict";
 
-/* Compatibilidade: não usa prompt/crypto.randomUUID.
-   O recorde NÃO é salvo no armazenamento. */
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+const canvas =
+document.getElementById("game");
 
-let W=0,H=0,roadX=0,roadW=0,laneW=0;
-let running=false,paused=false,gameEnded=false;
-let score=0,coins=0,speed=5,spawnTimer=30,coinTimer=60;
-let dragging=false,touchStartX=0,touchStartY=0;
-let playerStartX=0,playerStartY=0;
-let cars=[],money=[],smoke=[];
-let account=null,players=[];
+const ctx =
+canvas.getContext("2d");
 
-const player={x:0,y:0,w:58,h:98};
+let W,H;
+
+let roadX;
+let roadW;
+let laneW;
+
+let running=false;
+let paused=false;
+
+let score=0;
+let coins=0;
+
+let speed=5;
+
+let spawnTimer=30;
+let coinTimer=60;
+
+let dragging=false;
+
+let touchStartX=0;
+let touchStartY=0;
+
+let playerStartX=0;
+let playerStartY=0;
+
+let cars=[];
+let money=[];
+let smoke=[];
+
+let account=null;
+
+let players=[];
+
+
+/* JOGADOR */
+
+const player={
+    x:0,
+    y:0,
+    w:58,
+    h:98
+};
+
+
+/* TAMANHO */
 
 function resize(){
- W=innerWidth; H=innerHeight;
- roadW=Math.min(W*.86,560);
- roadX=(W-roadW)/2;
- laneW=roadW/3;
- canvas.width=Math.max(1,Math.floor(W*devicePixelRatio));
- canvas.height=Math.max(1,Math.floor(H*devicePixelRatio));
- canvas.style.width=W+"px"; canvas.style.height=H+"px";
- ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
- if(!player.x){player.x=roadX+roadW/2-player.w/2;player.y=H-player.h-20;}
+
+    W=innerWidth;
+    H=innerHeight;
+
+    roadW=Math.min(W*.86,560);
+
+    roadX=(W-roadW)/2;
+
+    laneW=roadW/3;
+
+    canvas.width=W;
+    canvas.height=H;
+
+    if(!player.x){
+
+        player.x =
+            roadX+
+            roadW/2-
+            player.w/2;
+
+        player.y =
+            H-
+            player.h-
+            20;
+
+    }
+
 }
-addEventListener("resize",resize,{passive:true});
+
+addEventListener(
+    "resize",
+    resize
+);
+
 resize();
 
-function roundRect(x,y,w,h,r){
- r=Math.min(r,w/2,h/2);
- ctx.beginPath();ctx.moveTo(x+r,y);
- ctx.arcTo(x+w,y,x+w,y+h,r);
- ctx.arcTo(x+w,y+h,x,y+h,r);
- ctx.arcTo(x,y+h,x,y,r);
- ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
-}
+
+/* FUNDO */
 
 function background(){
- ctx.fillStyle="#172832";ctx.fillRect(0,0,W,H);
- ctx.fillStyle="#262c30";ctx.fillRect(roadX,0,roadW,H);
- ctx.fillStyle="#d9d9d9";ctx.fillRect(roadX,0,4,H);ctx.fillRect(roadX+roadW-4,0,4,H);
- let offset=(performance.now()/7)%130;
- ctx.fillStyle="#eee";
- for(let lane=1;lane<3;lane++) for(let y=-130+offset;y<H;y+=130)
-  ctx.fillRect(roadX+lane*laneW-3,y,6,65);
+
+    ctx.fillStyle="#172832";
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+    ctx.fillStyle="#262c30";
+
+    ctx.fillRect(
+        roadX,
+        0,
+        roadW,
+        H
+    );
+
+    ctx.fillStyle="#d9d9d9";
+
+    ctx.fillRect(
+        roadX,
+        0,
+        4,
+        H
+    );
+
+    ctx.fillRect(
+        roadX+roadW-4,
+        0,
+        4,
+        H
+    );
+
+    let offset =
+        (performance.now()/7)%130;
+
+    ctx.fillStyle="#eee";
+
+    for(
+        let lane=1;
+        lane<3;
+        lane++
+    ){
+
+        for(
+            let y=-130+offset;
+            y<H;
+            y+=130
+        ){
+
+            ctx.fillRect(
+                roadX+
+                lane*laneW-
+                3,
+                y,
+                6,
+                65
+            );
+
+        }
+
+    }
+
 }
 
-function drawCar(car,color,variant){
- ctx.save();ctx.translate(car.x+car.w/2,car.y+car.h/2);
- ctx.fillStyle="#0007";roundRect(-car.w/2+3,-car.h/2+5,car.w,car.h,14);ctx.fill();
- ctx.fillStyle=color;roundRect(-car.w/2,-car.h/2,car.w,car.h,15);ctx.fill();
- ctx.fillStyle="#18313e";roundRect(-car.w*.31,-car.h*.34,car.w*.62,car.h*.28,7);ctx.fill();
- ctx.fillStyle="#090b0d";
- roundRect(-car.w/2-2,-car.h*.24,7,20,2);ctx.fill();
- roundRect(car.w/2-5,-car.h*.24,7,20,2);ctx.fill();
- ctx.fillStyle="#fff1a2";
- roundRect(-car.w*.33,car.h*.30,10,5,2);ctx.fill();
- roundRect(car.w*.16,car.h*.30,10,5,2);ctx.fill();
- if(variant===1){ctx.fillStyle="#fff";ctx.fillRect(-car.w*.42,-3,6,32);}
- if(variant===2){
-  ctx.fillStyle="#111";ctx.fillRect(-car.w*.43,-car.h*.05,car.w*.86,5);
-  ctx.fillStyle="#ff4444";ctx.fillRect(-car.w*.30,car.h*.30,7,5);ctx.fillRect(car.w*.18,car.h*.30,7,5);
- }
- ctx.restore();
+
+/* RETÂNGULO */
+
+function roundRect(
+    x,
+    y,
+    w,
+    h,
+    r
+){
+
+    r=Math.min(
+        r,
+        w/2,
+        h/2
+    );
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x+r,
+        y
+    );
+
+    ctx.arcTo(
+        x+w,
+        y,
+        x+w,
+        y+h,
+        r
+    );
+
+    ctx.arcTo(
+        x+w,
+        y+h,
+        x,
+        y+h,
+        r
+    );
+
+    ctx.arcTo(
+        x,
+        y+h,
+        x,
+        y,
+        r
+    );
+
+    ctx.arcTo(
+        x,
+        y,
+        x+w,
+        y,
+        r
+    );
+
+    ctx.closePath();
+
 }
+
+
+/* CARRO */
+
+function drawCar(
+    car,
+    color,
+    variant
+){
+
+    ctx.save();
+
+    ctx.translate(
+        car.x+car.w/2,
+        car.y+car.h/2
+    );
+
+    /* sombra */
+
+    ctx.fillStyle="#0007";
+
+    roundRect(
+        -car.w/2+3,
+        -car.h/2+5,
+        car.w,
+        car.h,
+        14
+    );
+
+    ctx.fill();
+
+
+    /* carro */
+
+    ctx.fillStyle=color;
+
+    roundRect(
+        -car.w/2,
+        -car.h/2,
+        car.w,
+        car.h,
+        15
+    );
+
+    ctx.fill();
+
+
+    /* vidro */
+
+    ctx.fillStyle="#18313e";
+
+    roundRect(
+        -car.w*.31,
+        -car.h*.34,
+        car.w*.62,
+        car.h*.28,
+        7
+    );
+
+    ctx.fill();
+
+
+    /* roda */
+
+    ctx.fillStyle="#090b0d";
+
+    roundRect(
+        -car.w/2-2,
+        -car.h*.24,
+        7,
+        20,
+        2
+    );
+
+    ctx.fill();
+
+    roundRect(
+        car.w/2-5,
+        -car.h*.24,
+        7,
+        20,
+        2
+    );
+
+    ctx.fill();
+
+
+    /* faróis */
+
+    ctx.fillStyle="#fff1a2";
+
+    roundRect(
+        -car.w*.33,
+        car.h*.30,
+        10,
+        5,
+        2
+    );
+
+    ctx.fill();
+
+    roundRect(
+        car.w*.16,
+        car.h*.30,
+        10,
+        5,
+        2
+    );
+
+    ctx.fill();
+
+
+    /* VARIAÇÕES */
+
+    if(variant===1){
+
+        ctx.fillStyle="#fff";
+
+        ctx.fillRect(
+            -car.w*.42,
+            -3,
+            6,
+            32
+        );
+
+    }
+
+
+    if(variant===2){
+
+        ctx.fillStyle="#111";
+
+        ctx.fillRect(
+            -car.w*.43,
+            -car.h*.05,
+            car.w*.86,
+            5
+        );
+
+        ctx.fillStyle="#ff4444";
+
+        ctx.fillRect(
+            -car.w*.30,
+            car.h*.30,
+            7,
+            5
+        );
+
+        ctx.fillRect(
+            car.w*.18,
+            car.h*.30,
+            7,
+            5
+        );
+
+    }
+
+    ctx.restore();
+
+}
+
+
+/* FUMAÇA */
 
 function addSmoke(){
- smoke.push({x:player.x+player.w/2,y:player.y+player.h,r:3+Math.random()*3,a:.5});
- if(smoke.length>25)smoke.shift();
+
+    smoke.push({
+
+        x:
+            player.x+
+            player.w/2,
+
+        y:
+            player.y+
+            player.h,
+
+        r:
+            3+
+            Math.random()*3,
+
+        a:.5
+
+    });
+
+    if(smoke.length>25)
+        smoke.shift();
+
 }
+
+
 function drawSmoke(){
- for(const s of smoke){s.y+=.6;s.r+=.1;s.a-=.02;ctx.globalAlpha=Math.max(0,s.a);ctx.fillStyle="#aaa";ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();}
- ctx.globalAlpha=1;smoke=smoke.filter(s=>s.a>0);
+
+    for(const s of smoke){
+
+        s.y+=.6;
+
+        s.r+=.1;
+
+        s.a-=.02;
+
+        ctx.globalAlpha=
+            Math.max(
+                0,
+                s.a
+            );
+
+        ctx.fillStyle="#aaa";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            s.x,
+            s.y,
+            s.r,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+    ctx.globalAlpha=1;
+
+    smoke =
+        smoke.filter(
+            s=>s.a>0
+        );
+
 }
+
+
+/* CARROS DO TRÂNSITO */
 
 function spawnCar(){
- const lane=Math.floor(Math.random()*3);
- const types=[[56,94],[62,106],[58,115]];
- const type=types[Math.floor(Math.random()*types.length)];
- const colors=["#e23832","#287dcc","#e0a928","#16825c","#7b48a9","#68737b","#d85d22"];
- cars.push({x:roadX+lane*laneW+laneW/2-type[0]/2,y:-140,w:type[0],h:type[1],v:speed*(.82+Math.random()*.2),color:colors[Math.floor(Math.random()*colors.length)],variant:Math.floor(Math.random()*3)});
+
+    let lane =
+        Math.floor(
+            Math.random()*3
+        );
+
+    let types=[
+        [56,94],
+        [62,106],
+        [58,115]
+    ];
+
+    let type =
+        types[
+            Math.floor(
+                Math.random()*
+                types.length
+            )
+        ];
+
+
+    let colors=[
+        "#e23832",
+        "#287dcc",
+        "#e0a928",
+        "#16825c",
+        "#7b48a9",
+        "#68737b",
+        "#d85d22"
+    ];
+
+
+    cars.push({
+
+        x:
+            roadX+
+            lane*laneW+
+            laneW/2-
+            type[0]/2,
+
+        y:-140,
+
+        w:type[0],
+
+        h:type[1],
+
+        v:
+            speed*
+            (
+                .82+
+                Math.random()*.2
+            ),
+
+        color:
+            colors[
+                Math.floor(
+                    Math.random()*
+                    colors.length
+                )
+            ],
+
+        variant:
+            Math.floor(
+                Math.random()*3
+            )
+
+    });
+
 }
+
+
+/* MOEDA */
+
 function spawnCoin(){
- const lane=Math.floor(Math.random()*3);
- money.push({x:roadX+lane*laneW+laneW/2,y:-20,r:11});
+
+    let lane =
+        Math.floor(
+            Math.random()*3
+        );
+
+    money.push({
+
+        x:
+            roadX+
+            lane*laneW+
+            laneW/2,
+
+        y:-20
+
+    });
+
 }
-function hit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+
+
+/* COLISÃO */
+
+function hit(a,b){
+
+    return(
+        a.x<b.x+b.w &&
+        a.x+a.w>b.x &&
+        a.y<b.y+b.h &&
+        a.y+a.h>b.y
+    );
+
+}
+
+
+/* COLISÃO COM MOEDA */
+
 function hitCoin(a,b){
- const cx=Math.max(a.x,Math.min(b.x,a.x+a.w));
- const cy=Math.max(a.y,Math.min(b.y,a.y+a.h));
- const dx=b.x-cx,dy=b.y-cy;
- return dx*dx+dy*dy<=b.r*b.r;
+
+    let closestX =
+        Math.max(
+            a.x,
+            Math.min(
+                b.x,
+                a.x+a.w
+            )
+        );
+
+    let closestY =
+        Math.max(
+            a.y,
+            Math.min(
+                b.y,
+                a.y+a.h
+            )
+        );
+
+    return Math.hypot(
+        b.x-closestX,
+        b.y-closestY
+    )<16;
+
 }
 
-function drawPlayer(){
- ctx.save();
- ctx.translate(player.x+player.w/2,player.y+player.h/2);
- ctx.fillStyle="#0007";roundRect(-player.w/2+3,-player.h/2+6,player.w,player.h,15);ctx.fill();
- ctx.fillStyle="#d82c35";roundRect(-player.w/2,-player.h/2,player.w,player.h,15);ctx.fill();
- ctx.fillStyle="#193340";roundRect(-player.w*.31,-player.h*.34,player.w*.62,player.h*.28,7);ctx.fill();
- ctx.fillStyle="#090b0d";roundRect(-player.w/2-2,-player.h*.24,7,20,2);ctx.fill();roundRect(player.w/2-5,-player.h*.24,7,20,2);ctx.fill();
- ctx.fillStyle="#fff1a2";roundRect(-player.w*.33,player.h*.30,10,5,2);ctx.fill();roundRect(player.w*.16,player.h*.30,10,5,2);ctx.fill();
- ctx.restore();
-}
 
-function drawCoins(){
- for(const c of money){
-  ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
-  ctx.fillStyle="#ffd43b";ctx.fill();
-  ctx.strokeStyle="#fff2a0";ctx.lineWidth=2;ctx.stroke();
- }
-}
+/* UPDATE */
 
 function update(){
- if(!running||paused||gameEnded)return;
- score++;
- speed=Math.min(10,5+score/1800);
- spawnTimer--;coinTimer--;
- if(spawnTimer<=0){spawnCar();spawnTimer=Math.max(28,65-score/80)+Math.random()*25;}
- if(coinTimer<=0){spawnCoin();coinTimer=70+Math.random()*50;}
- for(const c of cars)c.y+=c.v;
- for(const c of cars)if(hit(player,c)){endGame();return;}
- for(const m of money)m.y+=speed;
- for(let i=money.length-1;i>=0;i--)if(hitCoin(player,money[i])){coins++;money.splice(i,1);}
- cars=cars.filter(c=>c.y<H+160);
- money=money.filter(m=>m.y<H+40);
- if(Math.random()<.18)addSmoke();
- document.getElementById("score").textContent=score;
- document.getElementById("coins").textContent=coins;
+
+    if(
+        !running ||
+        paused
+    )
+        return;
+
+
+    speed+=.0012;
+
+    score+=.05;
+
+
+    spawnTimer--;
+
+    coinTimer--;
+
+
+    if(spawnTimer<=0){
+
+        spawnCar();
+
+        spawnTimer =
+            Math.max(
+                38,
+                72-speed*2.5
+            );
+
+    }
+
+
+    if(coinTimer<=0){
+
+        spawnCoin();
+
+        coinTimer=72;
+
+    }
+
+
+    if(Math.random()<.6)
+        addSmoke();
+
+
+    /* CARROS */
+
+    for(
+        let i=cars.length-1;
+        i>=0;
+        i--
+    ){
+
+        let c=cars[i];
+
+        c.y+=c.v;
+
+
+        /* BATIDA */
+
+        if(hit(player,c)){
+
+            gameOver();
+
+            return;
+
+        }
+
+
+        if(c.y>H+150){
+
+            cars.splice(i,1);
+
+            score+=10;
+
+        }
+
+    }
+
+
+    /* MOEDAS */
+
+    for(
+        let i=money.length-1;
+        i>=0;
+        i--
+    ){
+
+        let m=money[i];
+
+        m.y+=speed;
+
+
+        if(hitCoin(player,m)){
+
+            coins++;
+
+            score+=40;
+
+            money.splice(i,1);
+
+        }
+        else if(
+            m.y>H+40
+        ){
+
+            money.splice(i,1);
+
+        }
+
+    }
+
+
+    document.getElementById(
+        "score"
+    ).textContent =
+        Math.floor(score);
+
+
+    document.getElementById(
+        "coins"
+    ).textContent =
+        coins;
+
 }
 
-function render(){
- background();drawCoins();
- for(const c of cars)drawCar(c,c.color,c.variant);
- drawSmoke();drawPlayer();
- requestAnimationFrame(render);
-}
-requestAnimationFrame(render);
 
-function start(){
- hideAllScreens();running=true;paused=false;gameEnded=false;
- score=0;coins=0;speed=5;spawnTimer=30;coinTimer=60;cars=[];money=[];smoke=[];
- player.x=roadX+roadW/2-player.w/2;player.y=H-player.h-20;
- document.getElementById("score").textContent="0";
- document.getElementById("coins").textContent="0";
- document.getElementById("hud").style.display="flex";
- document.getElementById("pauseBtn").style.display="block";
-}
-function endGame(){
- if(gameEnded)return;
- gameEnded=true;running=false;paused=false;
- document.getElementById("final").textContent=score;
- document.getElementById("over").classList.remove("hidden");
- document.getElementById("pauseBtn").style.display="none";
- document.getElementById("hud").style.display="none";
-}
-function goMenu(){running=false;paused=false;gameEnded=false;hideAllScreens();document.getElementById("menu").classList.remove("hidden");document.getElementById("hud").style.display="none";document.getElementById("pauseBtn").style.display="none";}
-function pauseGame(){if(!running||gameEnded)return;paused=true;document.getElementById("pause").classList.remove("hidden");}
-function resumeGame(){paused=false;document.getElementById("pause").classList.add("hidden");}
-function hideAllScreens(){document.querySelectorAll(".screen").forEach(s=>s.classList.add("hidden"));}
+/* DRAW */
 
-function makeId(){
- const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
- let out="#";
- for(let i=0;i<8;i++)out+=chars[Math.floor(Math.random()*chars.length)];
- return out;
-}
+function draw(){
 
-function safeGet(key){
- try{return localStorage.getItem(key)}catch(e){return null}
-}
-function safeSet(key,value){
- try{localStorage.setItem(key,value);return true}catch(e){return false}
-}
+    background();
 
-function createAccount(){
- const name=document.getElementById("nameInput").value.trim();
- const bio=document.getElementById("bioInput").value.trim();
- if(!name){alert("Digite seu nome.");return;}
- account={id:makeId(),name,bio,avatar:null};
- /* Conta local: não salva recorde/progresso. */
- safeSet("hr_account",JSON.stringify(account));
- loadAccount();
- goMenu();
-}
 
-function loadAccount(){
- const raw=safeGet("hr_account");
- if(raw){
-  try{account=JSON.parse(raw)}catch(e){account=null}
- }
- if(!account)return;
- document.getElementById("profileName").textContent=account.name;
- document.getElementById("profileBio").textContent=account.bio||"Nenhuma bio definida.";
- if(account.avatar)showAvatar(account.avatar);
- else{
-  document.getElementById("avatarImage").style.display="none";
-  document.getElementById("avatarPlaceholder").style.display="block";
- }
- updateRank();
-}
+    /* moedas */
 
-function showAvatar(src){
- document.getElementById("avatarImage").src=src;
- document.getElementById("avatarImage").style.display="block";
- document.getElementById("avatarPlaceholder").style.display="none";
+    for(const m of money){
+
+        ctx.fillStyle="#f4bd23";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            m.x,
+            m.y,
+            12,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+
+        ctx.fillStyle="#6d4b00";
+
+        ctx.font=
+            "bold 12px Arial";
+
+        ctx.textAlign="center";
+
+        ctx.fillText(
+            "$",
+            m.x,
+            m.y+4
+        );
+
+    }
+
+
+    /* carros */
+
+    for(const c of cars){
+
+        drawCar(
+            c,
+            c.color,
+            c.variant
+        );
+
+    }
+
+
+    /* fumaça */
+
+    drawSmoke();
+
+
+    /* jogador */
+
+    drawCar(
+        player,
+        "#d92732",
+        0
+    );
+
 }
 
-function chooseAvatar(){document.getElementById("avatarInput").click();}
-document.getElementById("avatarInput").addEventListener("change",function(){
- const file=this.files&&this.files[0];if(!file)return;
- const reader=new FileReader();
- reader.onload=function(e){
-  if(!account)return;
-  account.avatar=e.target.result;
-  showAvatar(account.avatar);
-  safeSet("hr_account",JSON.stringify(account));
- };
- reader.readAsDataURL(file);
- this.value="";
-});
 
-function editBio(){
- if(!account)return;
- const value=prompt("Digite sua nova bio:",account.bio||"");
- if(value===null)return;
- account.bio=value.slice(0,80);
- document.getElementById("profileBio").textContent=account.bio||"Nenhuma bio definida.";
- safeSet("hr_account",JSON.stringify(account));
+/* LOOP */
+
+function loop(){
+
+    update();
+
+    draw();
+
+    requestAnimationFrame(
+        loop
+    );
+
 }
+
+
+/* CONTROLE POR ARRASTAR */
+
+canvas.addEventListener(
+    "pointerdown",
+    e=>{
+
+        if(
+            !running ||
+            paused
+        )
+            return;
+
+
+        dragging=true;
+
+
+        touchStartX=
+            e.clientX;
+
+        touchStartY=
+            e.clientY;
+
+
+        playerStartX=
+            player.x;
+
+        playerStartY=
+            player.y;
+
+
+        canvas.setPointerCapture(
+            e.pointerId
+        );
+
+    }
+);
+
+
+canvas.addEventListener(
+    "pointermove",
+    e=>{
+
+        if(
+            !dragging ||
+            !running ||
+            paused
+        )
+            return;
+
+
+        let dx =
+            e.clientX-
+            touchStartX;
+
+        let dy =
+            e.clientY-
+            touchStartY;
+
+
+        player.x =
+            playerStartX+dx;
+
+        player.y =
+            playerStartY+dy;
+
+
+        /* limites laterais */
+
+        player.x =
+            Math.max(
+                roadX+5,
+                Math.min(
+                    player.x,
+                    roadX+
+                    roadW-
+                    player.w-
+                    5
+                )
+            );
+
+
+        /* limites verticais */
+
+        player.y =
+            Math.max(
+                5,
+                Math.min(
+                    player.y,
+                    H-
+                    player.h-
+                    5
+                )
+            );
+
+    }
+);
+
+
+canvas.addEventListener(
+    "pointerup",
+    e=>{
+
+        dragging=false;
+
+        try{
+
+            canvas.releasePointerCapture(
+                e.pointerId
+            );
+
+        }catch(err){}
+
+    }
+);
+
+
+canvas.addEventListener(
+    "pointercancel",
+    ()=>{
+        dragging=false;
+    }
+);
+
+
+/* PATENTES */
+
+const ranks=[
+
+    [
+        "BRONZE",
+        100,
+        "bronze"
+    ],
+
+    [
+        "PRATA",
+        200,
+        "silver"
+    ],
+
+    [
+        "OURO",
+        300,
+        "gold"
+    ],
+
+    [
+        "PLATINA",
+        400,
+        "platinum"
+    ],
+
+    [
+        "DIAMANTE",
+        500,
+        "diamond"
+    ],
+
+    [
+        "MESTRE",
+        600,
+        "master"
+    ]
+
+];
+
 
 function getRank(points){
- if(points>=600)return["MESTRE","master"];
- if(points>=500)return["DIAMANTE","diamond"];
- if(points>=400)return["PLATINA","platinum"];
- if(points>=300)return["OURO","gold"];
- if(points>=200)return["PRATA","silver"];
- return["BRONZE","bronze"];
-}
-function updateRank(){
- const points=0; /* recorde não persistido nesta versão */
- const r=getRank(points);
- document.getElementById("profileRankName").textContent=r[0];
- const el=document.getElementById("profileRankLogo");
- el.className="rankLogo";
- const badge=document.createElement("div");
- badge.className="rankBadge "+r[1];
- el.appendChild(badge);
- document.getElementById("profileRecord").textContent="0";
+
+    let rank=ranks[0];
+
+
+    for(
+        const r of ranks
+    ){
+
+        if(
+            points>=r[1]
+        )
+            rank=r;
+
+    }
+
+
+    return rank;
+
 }
 
-function openProfile(){hideAllScreens();loadAccount();document.getElementById("profile").classList.remove("hidden");}
-function closeProfile(){goMenu();}
-function openSearch(){hideAllScreens();document.getElementById("search").classList.remove("hidden");document.getElementById("searchResult").innerHTML="";}
-function closeSearch(){goMenu();}
+
+function rankLogo(rank){
+
+    return `
+        <div
+            class="rankBadge ${rank[2]}">
+        </div>
+    `;
+
+}
+
+
+/* GERAR ID */
+
+function generateID(){
+
+    return "#"+
+        Math.random()
+        .toString(36)
+        .slice(2,7)
+        .toUpperCase()+
+        Math.random()
+        .toString(36)
+        .slice(2,5)
+        .toUpperCase();
+
+}
+
+
+/* CRIAR CONTA */
+
+function createAccount(){
+
+    let name =
+        document.getElementById(
+            "nameInput"
+        ).value.trim();
+
+
+    if(!name){
+
+        alert(
+            "Digite seu nome."
+        );
+
+        return;
+
+    }
+
+
+    account={
+
+        id:
+            generateID(),
+
+        name:
+            name,
+
+        bio:
+            document.getElementById(
+                "bioInput"
+            ).value.trim(),
+
+        record:0,
+
+        coins:0,
+
+        avatar:null
+
+    };
+
+
+    players.push(
+        account
+    );
+
+
+    document.getElementById(
+        "register"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "menu"
+    ).classList.remove(
+        "hidden"
+    );
+
+
+    loadProfile();
+
+}
+
+
+/* CARREGAR PERFIL */
+
+function loadProfile(){
+
+    if(!account)
+        return;
+
+
+    document.getElementById(
+        "profileName"
+    ).textContent =
+        account.name;
+
+
+    document.getElementById(
+        "profileRecord"
+    ).textContent =
+        account.record;
+
+
+    document.getElementById(
+        "profileBio"
+    ).textContent =
+        account.bio ||
+        "Nenhuma bio definida.";
+
+
+    /* patente */
+
+    let rank =
+        getRank(
+            account.record
+        );
+
+
+    document.getElementById(
+        "profileRankLogo"
+    ).innerHTML =
+        rankLogo(rank);
+
+
+    document.getElementById(
+        "profileRankName"
+    ).textContent =
+        rank[0];
+
+
+    /* avatar */
+
+    const img =
+        document.getElementById(
+            "avatarImage"
+        );
+
+
+    const placeholder =
+        document.getElementById(
+            "avatarPlaceholder"
+        );
+
+
+    if(account.avatar){
+
+        img.src =
+            account.avatar;
+
+        img.style.display =
+            "block";
+
+        placeholder.style.display =
+            "none";
+
+    }
+    else{
+
+        img.removeAttribute(
+            "src"
+        );
+
+        img.style.display =
+            "none";
+
+        placeholder.style.display =
+            "block";
+
+    }
+
+}
+
+
+/* ESCOLHER AVATAR */
+
+function chooseAvatar(){
+
+    if(!account)
+        return;
+
+
+    const input =
+        document.getElementById(
+            "avatarInput"
+        );
+
+
+    input.value="";
+
+
+    input.click();
+
+}
+
+
+/* FOTO ESCOLHIDA */
+
+document.getElementById(
+    "avatarInput"
+).addEventListener(
+    "change",
+    function(){
+
+        const file =
+            this.files[0];
+
+
+        if(!file)
+            return;
+
+
+        if(
+            !file.type.startsWith(
+                "image/"
+            )
+        ){
+
+            alert(
+                "Escolha uma imagem."
+            );
+
+            return;
+
+        }
+
+
+        /*
+        A imagem original é carregada
+        sem ser deformada.
+        */
+
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload =
+            function(e){
+
+                account.avatar =
+                    e.target.result;
+
+
+                loadProfile();
+
+            };
+
+
+        reader.readAsDataURL(
+            file
+        );
+
+    }
+);
+
+
+/* EDITAR BIO */
+
+function editBio(){
+
+    let bio =
+        prompt(
+            "Digite sua nova bio:",
+            account.bio || ""
+        );
+
+
+    if(bio===null)
+        return;
+
+
+    account.bio =
+        bio.slice(
+            0,
+            80
+        );
+
+
+    loadProfile();
+
+}
+
+
+/* COMEÇAR JOGO */
+
+function start(){
+
+    cars=[];
+    money=[];
+    smoke=[];
+
+
+    score=0;
+
+    coins=0;
+
+    speed=5;
+
+
+    spawnTimer=25;
+
+    coinTimer=55;
+
+
+    player.x =
+        roadX+
+        roadW/2-
+        player.w/2;
+
+
+    player.y =
+        H-
+        player.h-
+        20;
+
+
+    running=true;
+
+    paused=false;
+
+    dragging=false;
+
+
+    document
+        .querySelectorAll(
+            ".screen"
+        )
+        .forEach(
+            x=>
+                x.classList.add(
+                    "hidden"
+                )
+        );
+
+}
+
+
+/* GAME OVER */
+
+function gameOver(){
+
+    running=false;
+
+    paused=false;
+
+    dragging=false;
+
+
+    cars.forEach(
+        c=>{
+            c.v=0;
+        }
+    );
+
+
+    let finalScore =
+        Math.floor(
+            score
+        );
+
+
+    /*
+    O recorde é mantido apenas
+    durante esta sessão.
+    */
+
+    if(account){
+
+        if(
+            finalScore>
+            account.record
+        ){
+
+            account.record =
+                finalScore;
+
+        }
+
+        account.coins +=
+            coins;
+
+
+        loadProfile();
+
+    }
+
+
+    document.getElementById(
+        "final"
+    ).textContent =
+        finalScore;
+
+
+    document.getElementById(
+        "over"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* MENU */
+
+function goMenu(){
+
+    running=false;
+
+    paused=false;
+
+    dragging=false;
+
+
+    document
+        .querySelectorAll(
+            ".screen"
+        )
+        .forEach(
+            x=>
+                x.classList.add(
+                    "hidden"
+                )
+        );
+
+
+    document.getElementById(
+        "menu"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* PAUSE */
+
+document.getElementById(
+    "pauseBtn"
+).onclick =
+function(){
+
+    if(!running)
+        return;
+
+
+    paused=true;
+
+    dragging=false;
+
+
+    document.getElementById(
+        "pause"
+    ).classList.remove(
+        "hidden"
+    );
+
+};
+
+
+function resumeGame(){
+
+    paused=false;
+
+
+    document.getElementById(
+        "pause"
+    ).classList.add(
+        "hidden"
+    );
+
+}
+
+
+/* ABRIR PERFIL */
+
+function openProfile(){
+
+    running=false;
+
+
+    loadProfile();
+
+
+    document.getElementById(
+        "menu"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "profile"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+function closeProfile(){
+
+    document.getElementById(
+        "profile"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "menu"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* PESQUISAR */
+
+function openSearch(){
+
+    document.getElementById(
+        "menu"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "search"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+function closeSearch(){
+
+    document.getElementById(
+        "search"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "menu"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
 
 function searchPlayer(){
- const id=document.getElementById("searchInput").value.trim().toUpperCase();
- const result=document.getElementById("searchResult");
- if(!id){result.innerHTML='<p style="opacity:.6;margin:15px">Digite um ID.</p>';return;}
- if(account&&id===account.id){
-  result.innerHTML='<div class="rankItem" style="margin-top:15px"><div class="rankAvatar">'+(account.avatar?'<img src="'+account.avatar+'">':'')+'</div><div class="rankPlayer">'+escapeHtml(account.name)+'</div><div class="rankScore">'+account.id+'</div></div>';
- }else{
-  result.innerHTML='<p style="opacity:.6;margin:15px">Jogador não encontrado neste dispositivo.</p>';
- }
+
+    let id =
+        document.getElementById(
+            "searchInput"
+        ).value
+        .trim()
+        .toUpperCase();
+
+
+    let found =
+        players.find(
+            p=>
+                p.id===id
+        );
+
+
+    let result =
+        document.getElementById(
+            "searchResult"
+        );
+
+
+    if(!found){
+
+        result.innerHTML=`
+
+            <div style="
+                margin-top:10px;
+                padding:13px;
+                background:#222930;
+                border-radius:10px">
+
+                Jogador não encontrado.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    let rank =
+        getRank(
+            found.record
+        );
+
+
+    result.innerHTML=`
+
+        <div style="
+            margin-top:10px;
+            padding:14px;
+            background:#222930;
+            border-radius:10px;
+            text-align:left">
+
+            ${
+                found.avatar
+                ?
+                `
+                <img
+                    src="${found.avatar}"
+                    style="
+                        width:55px;
+                        height:55px;
+                        object-fit:cover;
+                        border-radius:8px;
+                        vertical-align:middle;
+                        margin-right:8px">
+                `
+                :
+                `
+                <span
+                    style="
+                        display:inline-flex;
+                        width:55px;
+                        height:55px;
+                        align-items:center;
+                        justify-content:center;
+                        background:#303840;
+                        border-radius:8px;
+                        vertical-align:middle;
+                        margin-right:8px">
+                    👤
+                </span>
+                `
+            }
+
+            <b style="font-size:20px">
+                ${found.name}
+            </b>
+
+            <div style="
+                opacity:.5;
+                font-size:11px">
+
+                ID: ${found.id}
+
+            </div>
+
+            <br>
+
+            Recorde:
+            <b>${found.record}</b>
+
+            <br>
+
+            Patente:
+            <b>${rank[0]}</b>
+
+        </div>
+
+    `;
+
 }
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+
+
+/* RANKING */
 
 function openRanking(){
- hideAllScreens();
- const list=document.getElementById("rankList");
- const arr=[{name:account?account.name:"Jogador",score:0,avatar:account?account.avatar:null}];
- list.innerHTML=arr.map((p,i)=>'<div class="rankItem"><div class="rankNumber">'+(i+1)+'</div><div class="rankAvatar">'+(p.avatar?'<img src="'+p.avatar+'">':'')+'</div><div class="rankPlayer">'+escapeHtml(p.name)+'</div><div class="rankScore">'+p.score+'</div></div>').join("");
- document.getElementById("ranking").classList.remove("hidden");
-}
-function closeRanking(){goMenu();}
 
-/* CONTROLE POR ARRASTAR: tocar não move; só o arrasto move. */
-function pointerStart(x,y){
- if(!running||paused||gameEnded)return;
- dragging=true;touchStartX=x;touchStartY=y;playerStartX=player.x;playerStartY=player.y;
-}
-function pointerMove(x,y){
- if(!dragging||!running||paused||gameEnded)return;
- const dx=x-touchStartX,dy=y-touchStartY;
- player.x=playerStartX+dx;
- player.y=playerStartY+dy;
- player.x=Math.max(roadX+5,Math.min(roadX+roadW-player.w-5,player.x));
- player.y=Math.max(5,Math.min(H-player.h-5,player.y));
-}
-function pointerEnd(){dragging=false;}
+    document.getElementById(
+        "menu"
+    ).classList.add(
+        "hidden"
+    );
 
-canvas.addEventListener("touchstart",e=>{if(e.touches[0])pointerStart(e.touches[0].clientX,e.touches[0].clientY)},{passive:false});
-canvas.addEventListener("touchmove",e=>{if(e.touches[0]){pointerMove(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault()}},{passive:false});
-canvas.addEventListener("touchend",pointerEnd,{passive:true});
-canvas.addEventListener("touchcancel",pointerEnd,{passive:true});
 
-canvas.addEventListener("pointerdown",e=>{if(e.pointerType!=="touch")pointerStart(e.clientX,e.clientY)});
-canvas.addEventListener("pointermove",e=>{if(e.pointerType!=="touch")pointerMove(e.clientX,e.clientY)});
-canvas.addEventListener("pointerup",e=>{if(e.pointerType!=="touch")pointerEnd()});
-canvas.addEventListener("pointercancel",pointerEnd);
+    document.getElementById(
+        "ranking"
+    ).classList.remove(
+        "hidden"
+    );
 
-document.getElementById("pauseBtn").addEventListener("click",pauseGame);
-document.getElementById("createBtn").addEventListener("click",createAccount);
-document.getElementById("playBtn").addEventListener("click",start);
-document.getElementById("profileBtn").addEventListener("click",openProfile);
-document.getElementById("rankingBtn").addEventListener("click",openRanking);
-document.getElementById("searchBtn").addEventListener("click",openSearch);
-document.getElementById("againBtn").addEventListener("click",start);
-document.getElementById("overMenuBtn").addEventListener("click",goMenu);
-document.getElementById("resumeBtn").addEventListener("click",resumeGame);
-document.getElementById("pauseMenuBtn").addEventListener("click",goMenu);
-document.getElementById("profileBackBtn").addEventListener("click",closeProfile);
-document.getElementById("editBioBtn").addEventListener("click",editBio);
-document.getElementById("avatarButton").addEventListener("click",chooseAvatar);
-document.getElementById("searchPlayerBtn").addEventListener("click",searchPlayer);
-document.getElementById("searchBackBtn").addEventListener("click",closeSearch);
-document.getElementById("rankingBackBtn").addEventListener("click",closeRanking);
 
-document.getElementById("nameInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();createAccount()}});
-document.getElementById("searchInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchPlayer()}});
+    renderRanking();
 
-loadAccount();
-if(account){
- document.getElementById("register").classList.add("hidden");
- document.getElementById("menu").classList.remove("hidden");
-}else{
- document.getElementById("hud").style.display="none";
- document.getElementById("pauseBtn").style.display="none";
 }
 
-let last=performance.now();
-function loop(t){
- const dt=Math.min(32,t-last);last=t;
- update(dt);
- requestAnimationFrame(loop);
+
+function closeRanking(){
+
+    document.getElementById(
+        "ranking"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "menu"
+    ).classList.remove(
+        "hidden"
+    );
+
 }
-requestAnimationFrame(loop);
+
+
+function renderRanking(){
+
+    let sorted =
+        [...players].sort(
+            (a,b)=>
+                b.record-a.record
+        );
+
+
+    let html="";
+
+
+    sorted
+    .slice(0,10)
+    .forEach(
+        (p,i)=>{
+
+            let rank =
+                getRank(
+                    p.record
+                );
+
+
+            html += `
+
+                <div class="rankItem">
+
+                    <div class="rankNumber">
+                        ${i+1}
+                    </div>
+
+                    <div class="rankAvatar">
+
+                        ${
+                            p.avatar
+                            ?
+                            `<img src="${p.avatar}">`
+                            :
+                            `👤`
+                        }
+
+                    </div>
+
+                    <div class="rankPlayer">
+
+                        ${p.name}
+
+                        <div style="
+                            font-size:10px;
+                            opacity:.45">
+
+                            ${rank[0]}
+
+                        </div>
+
+                    </div>
+
+                    <div class="rankScore">
+                        ${p.record}
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+    );
+
+
+    if(!html){
+
+        html=`
+
+            <div style="opacity:.5">
+                Nenhum jogador ainda.
+            </div>
+
+        `;
+
+    }
+
+
+    document.getElementById(
+        "rankList"
+    ).innerHTML =
+        html;
+
+}
+
+
+/* INICIAR */
+
+document.getElementById(
+    "register"
+).classList.remove(
+    "hidden"
+);
+
+
+loop();
 
 </script>
+
 </body>
 </html>
