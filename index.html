@@ -913,8 +913,33 @@ let money=[];
 let smoke=[];
 
 let account=null;
-
 let players=[];
+
+/* CARREGAR CONTA SALVA */
+try{
+
+    const savedAccount =
+        localStorage.getItem("highwayRushAccount");
+
+    if(savedAccount){
+
+        account =
+            JSON.parse(savedAccount);
+
+        players=[
+            account
+        ];
+
+    }
+
+}catch(e){
+
+    console.error(
+        "Erro ao carregar conta:",
+        e
+    );
+
+}
 
 
 /* JOGADOR */
@@ -1947,6 +1972,10 @@ function createAccount(){
     players.push(
         account
     );
+    localStorage.setItem(
+        "highwayRushAccount",
+        JSON.stringify(account)
+    );
 
 
     document.getElementById(
@@ -2127,6 +2156,10 @@ document.getElementById(
                 account.avatar =
                     e.target.result;
 
+                localStorage.setItem(
+                    "highwayRushAccount",
+                    JSON.stringify(account)
+                );
 
                 loadProfile();
 
@@ -2162,6 +2195,10 @@ function editBio(){
             80
         );
 
+    localStorage.setItem(
+        "highwayRushAccount",
+        JSON.stringify(account)
+    );
 
     loadProfile();
 
@@ -2263,9 +2300,12 @@ function gameOver(){
 
         }
 
-        account.coins +=
-            coins;
-
+        account.coins += coins;
+        
+        localStorage.setItem(
+            "highwayRushAccount",
+            JSON.stringify(account)
+        );
 
         loadProfile();
 
