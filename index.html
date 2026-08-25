@@ -1,0 +1,4211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+
+<title>Reflex Drive</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#10161b;
+    color:white;
+    font-family:Arial,sans-serif;
+    touch-action:none;
+}
+
+canvas{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+}
+
+button{
+    border:0;
+    border-radius:11px;
+    padding:13px 22px;
+    margin:5px;
+    background:#df3038;
+    color:white;
+    font-weight:900;
+    font-size:15px;
+}
+
+button.secondary{
+    background:#303940;
+}
+
+.screen{
+    position:fixed;
+    inset:0;
+    z-index:20;
+    background:rgba(7,10,13,.97);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    overflow:auto;
+}
+
+.hidden{
+    display:none!important;
+}
+
+#menuBackBtn{
+    position:fixed;
+    top:14px;
+    left:14px;
+    z-index:50;
+    width:44px;
+    height:44px;
+    min-width:44px;
+    padding:0;
+    margin:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:12px;
+    font-size:22px;
+    font-weight:1000;
+    background:#303940;
+    border:1px solid #ffffff18;
+    box-shadow:0 5px 16px #0008;
+}
+#menuBackBtn:active{transform:scale(.94)}
+
+/* LOGO */
+
+.logo{
+    font-size:43px;
+    font-weight:1000;
+    font-style:italic;
+    line-height:.84;
+    text-align:center;
+    text-shadow:3px 3px #80171d,0 0 20px #e52b35;
+}
+
+.subtitle{
+    margin:17px 0 22px;
+    opacity:.45;
+    letter-spacing:4px;
+    font-size:10px;
+}
+
+/* HUD */
+
+#hud{
+    position:fixed;
+    z-index:5;
+    top:12px;
+    left:12px;
+    right:60px;
+    display:flex;
+    justify-content:space-between;
+    pointer-events:none;
+}
+
+.hudBox{
+    background:#0009;
+    border-radius:9px;
+    padding:7px 12px;
+    min-width:85px;
+}
+
+.hudTitle{
+    font-size:9px;
+    opacity:.5;
+    letter-spacing:2px;
+}
+
+.hudValue{
+    font-size:21px;
+    font-weight:900;
+}
+
+#pauseBtn{
+    position:fixed;
+    z-index:6;
+    right:10px;
+    top:10px;
+    width:42px;
+    height:42px;
+    padding:0;
+    border-radius:50%;
+    background:#0009;
+}
+
+/* FORM */
+
+#friendRequestsButton{
+    position:relative;
+}
+
+.friendBadge{
+    display:none;
+    position:absolute;
+    top:-7px;
+    right:-7px;
+    min-width:19px;
+    height:19px;
+    padding:0 5px;
+    border-radius:10px;
+    background:#e6edf2;
+    color:#11171c;
+    font-size:10px;
+    font-weight:900;
+    line-height:19px;
+}
+
+.requestItem{
+    background:#222930;
+    border:1px solid #303840;
+    border-radius:12px;
+    padding:13px;
+    margin:8px 0;
+    text-align:left;
+}
+
+.requestActions{
+    display:flex;
+    gap:7px;
+    margin-top:10px;
+}
+
+.requestActions button{
+    flex:1;
+    margin:0;
+    padding:9px 8px;
+}
+
+.form{
+    width:min(94%,400px);
+    background:#181e24;
+    border:1px solid #303840;
+    border-radius:16px;
+    padding:22px;
+    text-align:center;
+}
+
+input,textarea{
+    width:100%;
+    padding:13px;
+    margin:5px 0;
+    background:#0b0f12;
+    color:white;
+    border:1px solid #3b454d;
+    border-radius:9px;
+    outline:none;
+}
+
+textarea{
+    height:75px;
+    resize:none;
+}
+
+/* PERFIL */
+
+.profileCard{
+    width:min(94%,450px);
+}
+
+.banner{
+    height:155px;
+    position:relative;
+    border:3px solid #6e777e;
+    border-radius:14px;
+    background:linear-gradient(135deg,#304b60,#131a20);
+    box-shadow:0 10px 30px #0009;
+    overflow:visible;
+}
+
+.playerIdRow{
+    position:absolute;
+    left:108px;
+    right:8px;
+    top:62px;
+
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:7px;
+
+    font-size:clamp(18px,5vw,27px);
+    font-weight:1000;
+    white-space:nowrap;
+    overflow:hidden;
+    text-shadow:3px 3px 6px #000;
+}
+
+#copyPlayerIdButton{
+    width:30px;
+    height:30px;
+    padding:0;
+    border:0;
+    border-radius:6px;
+    background:transparent;
+    color:inherit;
+    font:inherit;
+    font-size:22px;
+    font-weight:1000;
+    line-height:1;
+    text-shadow:3px 3px 6px #000;
+    cursor:pointer;
+    flex:0 0 auto;
+}
+
+#copyPlayerIdButton:hover,
+#copyPlayerIdButton:focus,
+#copyPlayerIdButton:active{
+    background:transparent;
+    color:inherit;
+    outline:none;
+}
+
+.playerName{
+    position:absolute;
+    left:108px;
+    right:8px;
+    top:10px;
+
+    font-size:clamp(28px,8vw,45px);
+    font-weight:1000;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+
+    text-align:left;
+    text-shadow:3px 3px 6px #000;
+}
+
+/* AVATAR */
+
+.avatar{
+    position:absolute;
+    left:12px;
+    bottom:-23px;
+
+    width:90px;
+    height:90px;
+
+    border-radius:10px;
+    border:4px solid white;
+
+    background:#303a42;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    overflow:hidden;
+
+    box-shadow:0 6px 15px #000b;
+
+    cursor:pointer;
+
+    z-index:5;
+}
+
+.avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.avatarPlaceholder{
+    font-size:10px;
+    font-weight:900;
+    line-height:1.4;
+    text-align:center;
+    letter-spacing:1px;
+    opacity:.65;
+}
+
+/* STATS */
+
+.profileStats{
+    margin-top:38px;
+    display:flex;
+    gap:10px;
+}
+
+.stat,.rankStat{
+    flex:1;
+    min-height:82px;
+
+    background:#ffffff09;
+    border:1px solid #ffffff14;
+    border-radius:11px;
+}
+
+.stat{
+    padding:12px;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+
+    text-align:left;
+}
+
+.statTitle,.rankSmall{
+    font-size:9px;
+    opacity:.45;
+    letter-spacing:2px;
+}
+
+.statValue{
+    font-size:22px;
+    font-weight:900;
+    margin-top:5px;
+}
+
+.rankStat{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:8px;
+}
+
+.rankLogo{
+    width:48px;
+    height:48px;
+    position:relative;
+    flex:none;
+}
+
+.rankInfo{
+    text-align:left;
+}
+
+.rankName{
+    font-size:12px;
+    font-weight:900;
+    margin-top:3px;
+}
+
+/* PATENTES */
+
+.rankBadge{
+    position:absolute;
+    inset:3px;
+    filter:drop-shadow(0 4px 4px #000c);
+}
+
+.bronze{
+    background:linear-gradient(145deg,#ffd29a,#ad531d,#61240f);
+
+    clip-path:polygon(
+        15% 4%,85% 4%,97% 30%,88% 78%,
+        50% 97%,12% 78%,3% 30%
+    );
+}
+
+.silver{
+    background:linear-gradient(145deg,#fff,#9da5ac,#555d64);
+
+    clip-path:polygon(
+        12% 5%,88% 5%,100% 50%,
+        88% 95%,12% 95%,0 50%
+    );
+}
+
+.gold{
+    background:linear-gradient(145deg,#fff4a0,#e2a200,#865400);
+
+    clip-path:polygon(
+        50% 0,61% 25%,92% 25%,68% 45%,
+        77% 82%,50% 62%,23% 82%,32% 45%,
+        8% 25%,39% 25%
+    );
+}
+
+.platinum{
+    background:linear-gradient(145deg,#e2ffff,#4baeb9,#205965);
+
+    clip-path:polygon(
+        20% 0,80% 0,100% 31%,87% 82%,
+        50% 100%,13% 82%,0 31%
+    );
+}
+
+.diamond{
+    background:linear-gradient(145deg,#f1caff,#8c49d1,#303d9b);
+
+    clip-path:polygon(
+        50% 0,88% 24%,100% 55%,73% 100%,
+        27% 100%,0 55%,12% 24%
+    );
+}
+
+.master{
+    background:linear-gradient(145deg,#fff1a0,#c82d33 45%,#71151a);
+
+    clip-path:polygon(
+        50% 0,70% 12%,94% 7%,90% 35%,
+        100% 55%,76% 68%,69% 100%,
+        50% 82%,31% 100%,24% 68%,
+        0 55%,10% 35%,6% 7%,30% 12%
+    );
+}
+
+/* BIO */
+
+.bio{
+    margin-top:10px;
+
+    padding:12px;
+
+    border-radius:10px;
+
+    background:#ffffff09;
+    border:1px solid #ffffff14;
+
+    text-align:left;
+}
+
+.bioHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.bioTitle{
+    font-size:9px;
+    opacity:.45;
+    letter-spacing:2px;
+}
+
+.editBio{
+    margin:0;
+    padding:5px 9px;
+    font-size:10px;
+    background:#303840;
+}
+
+.bioText{
+    font-size:14px;
+    font-weight:700;
+    margin-top:7px;
+    word-break:break-word;
+}
+
+/* CARRO DO PERFIL */
+
+.carShow{
+    height:185px;
+
+    margin-top:10px;
+
+    border-radius:13px;
+
+    background:#ffffff06;
+    border:1px solid #ffffff12;
+
+    position:relative;
+
+    display:grid;
+    place-items:center;
+
+    overflow:hidden;
+}
+
+.carShadow{
+    position:absolute;
+
+    bottom:33px;
+
+    width:125px;
+    height:18px;
+
+    border-radius:50%;
+
+    background:#000;
+
+    filter:blur(6px);
+
+    opacity:.7;
+}
+
+.profileCar{
+    position:absolute;
+
+    width:76px;
+    height:124px;
+
+    border-radius:17px;
+
+    background:#d82c35;
+
+    box-shadow:0 12px 20px #000;
+
+    animation:float 2s infinite ease-in-out;
+}
+
+.profileCar:before{
+    content:"";
+
+    position:absolute;
+
+    left:13px;
+    top:13px;
+
+    width:39px;
+    height:38px;
+
+    border-radius:8px;
+
+    background:#193340;
+}
+
+.profileCar:after{
+    content:"";
+
+    position:absolute;
+
+    left:10px;
+    right:10px;
+    bottom:13px;
+
+    height:7px;
+
+    border-radius:5px;
+
+    background:#fff0a0;
+}
+
+@keyframes float{
+
+    50%{
+        transform:translateY(-8px) rotate(2deg);
+    }
+
+}
+
+
+/* RANKING */
+
+.rankList{
+    width:min(94%,430px);
+}
+
+.rankItem{
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    padding:10px;
+    margin:6px 0;
+
+    background:#181e24;
+    border:1px solid #303840;
+
+    border-radius:11px;
+
+    text-align:left;
+}
+
+.rankNumber{
+    width:25px;
+    font-weight:900;
+}
+
+.rankAvatar{
+    width:42px;
+    height:42px;
+
+    border-radius:7px;
+
+    background:#303840;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    overflow:hidden;
+}
+
+.rankAvatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.rankPlayer{
+    flex:1;
+    font-weight:900;
+}
+
+.rankScore{
+    opacity:.85;
+    font-weight:900;
+    text-align:right;
+}
+.rankModeTabs{display:flex;justify-content:center;gap:5px;margin:0 0 8px}
+.rankModeTabs button{font-size:11px;padding:8px 10px}
+.rankModeTabs button.active{background:linear-gradient(135deg,#8d35d9,#d52d55);box-shadow:0 0 14px #a63cff44}
+.rankSub{font-size:9px;opacity:.45;margin-top:2px}
+
+
+
+/* CONTAS ONLINE - elementos novos seguem o estilo existente */
+.accountLinks{
+    margin-top:10px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+.accountLink{
+    background:none;
+    color:white;
+    opacity:.65;
+    font-size:11px;
+    padding:6px;
+    margin:0;
+}
+.accountLink:hover{opacity:1}
+.authMessage{
+    min-height:18px;
+    margin:8px 0;
+    font-size:11px;
+    opacity:.75;
+}
+.rankTabs{
+    display:flex;
+    justify-content:center;
+    gap:4px;
+    margin:0 0 10px;
+}
+.rankTabs button{
+    font-size:11px;
+    padding:9px 12px;
+}
+.friendButton{
+    width:100%;
+    margin:8px 0 0;
+}
+.friendList{
+    width:min(94%,430px);
+    margin-top:8px;
+}
+.friendTitle{
+    font-size:10px;
+    opacity:.5;
+    letter-spacing:2px;
+    margin:12px 0 6px;
+}
+
+
+/* REFLEX DRIVE — LOJA PREMIUM */
+.shopList{width:min(96%,520px);max-height:60vh;overflow:auto;padding:2px 3px}
+.shopItem{display:flex;align-items:center;gap:12px;padding:12px;margin:8px 0;background:#171d23;border:1px solid #303940;border-radius:14px;box-shadow:0 8px 20px #0006}
+.shopPreview{width:82px;height:96px;flex:none;border-radius:13px;position:relative;overflow:hidden;background:#202830;box-shadow:0 8px 18px #0009}
+.shopInfo{flex:1;text-align:left;min-width:0}.shopName{font-size:15px;font-weight:1000}.shopDesc{font-size:10px;opacity:.58;margin-top:3px;line-height:1.25}.shopPrice{font-size:11px;font-weight:900;margin-top:6px}.shopBuy{margin:0;padding:9px 10px;font-size:10px;white-space:nowrap}.shopBuy.owned{background:#303940}.shopBuy.equipped{background:#16825c}
+.shopSection{font-size:9px;letter-spacing:3px;opacity:.42;margin:3px 0 8px}
+
+/* O carro do perfil continua flutuando, mas agora recebe a carroceria da skin equipada. */
+.profileCar.premiumCar{background:transparent;box-shadow:none;border-radius:0;animation:float 2s infinite ease-in-out;}
+.profileCar.premiumCar::before,.profileCar.premiumCar::after{content:none}
+ .profileCar .pc-body{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:76px;height:124px}
+.profileCar .pc-aura{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:58px;height:28px;border-radius:50%;filter:blur(8px);opacity:.8;animation:exhaustPulse .55s infinite alternate}
+@keyframes exhaustPulse{from{transform:translateX(-50%) scale(.78);opacity:.55}to{transform:translateX(-50%) scale(1.12);opacity:.95}}
+.profileCar .pc-wheel{position:absolute;background:#07090b;border:2px solid #2e363d;border-radius:50%;width:20px;height:27px;box-shadow:0 2px 5px #000}
+.profileCar .pc-wheel::after{content:"";position:absolute;inset:5px;border-radius:50%;background:#69747d}
+.profileCar .pc-sponsor{position:absolute;font-weight:1000;font-family:Arial,sans-serif;letter-spacing:.5px;white-space:nowrap;transform:rotate(-90deg);transform-origin:center;text-shadow:1px 1px 0 #000}
+.profileCar .pc-number{position:absolute;font-weight:1000;font-size:12px;line-height:1}
+.profileCar .pc-wing{position:absolute;background:#111820;border-radius:2px}
+.profileCar .pc-stripe{position:absolute;border-radius:3px}
+
+
+/* RANQUEADA */
+.rankedButton{background:linear-gradient(135deg,#8d35d9,#d52d55)!important;box-shadow:0 0 18px #a63cff55}
+.rankedHud{display:none}
+.rankedHud.active{display:block}
+.rankProgress{width:min(94%,430px);margin:8px auto 12px;padding:10px 12px;background:#ffffff08;border:1px solid #ffffff14;border-radius:11px;text-align:left}
+.rankProgressTop{display:flex;justify-content:space-between;gap:10px;font-size:11px;font-weight:900}
+.rankProgressBar{height:7px;margin-top:7px;background:#0008;border-radius:10px;overflow:hidden}
+.rankProgressFill{height:100%;background:linear-gradient(90deg,#8d35d9,#ffcf32);border-radius:10px}
+.rankedReward{font-size:17px;font-weight:1000;margin:12px 0 4px}
+.rankedReward b{color:#ffd34d}
+.rankedRankLine{font-size:12px;opacity:.72}
+.rankModeBadge{display:inline-block;margin:5px 0;padding:5px 9px;border-radius:999px;background:#8d35d922;border:1px solid #a63cff55;font-size:9px;letter-spacing:2px;font-weight:900}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="hud">
+
+    <div class="hudBox">
+        <div class="hudTitle">PONTOS</div>
+        <div class="hudValue" id="score">0</div>
+    </div>
+
+    <div class="hudBox">
+        <div class="hudTitle">MOEDAS</div>
+        <div class="hudValue" id="coins">0</div>
+    </div>
+
+    <div class="hudBox rankedHud" id="rankedHud">
+        <div class="hudTitle">PONTOS RANQUEADA</div>
+        <div class="hudValue" id="rankedPointsHud">0</div>
+    </div>
+
+</div>
+
+<button id="pauseBtn">Ⅱ</button>
+
+
+<!-- CRIAR CONTA -->
+
+<div id="register" class="screen">
+
+    <div class="form">
+
+        <h2>CRIAR CONTA</h2>
+
+        <p style="opacity:.5;margin:10px 0">
+            Crie seu perfil online.
+        </p>
+
+        <input id="nameInput" maxlength="18" placeholder="Nome do jogador">
+
+        <input id="emailInput" type="email" autocomplete="email" placeholder="E-mail">
+
+        <input id="passwordInput" type="password" autocomplete="new-password" placeholder="Senha">
+
+        <input id="confirmPasswordInput" type="password" autocomplete="new-password" placeholder="Confirmar senha">
+
+        <textarea id="bioInput" maxlength="80" placeholder="Sua bio..."></textarea>
+
+        <div id="registerMessage" class="authMessage"></div>
+
+        <button onclick="createAccount()">CRIAR CONTA</button>
+
+        <button class="secondary" onclick="guestLogin()">ENTRAR COMO CONVIDADO</button>
+
+        <div class="accountLinks">
+            <button class="accountLink" onclick="showLogin()">JÁ TENHO UMA CONTA</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- LOGIN -->
+
+<div id="login" class="screen hidden">
+
+    <div class="form">
+
+        <h2>ENTRAR</h2>
+
+        <p style="opacity:.5;margin:10px 0">
+            Entre na sua conta do Reflex Drive.
+        </p>
+
+        <input id="loginEmailInput" type="email" autocomplete="email" placeholder="E-mail">
+
+        <input id="loginPasswordInput" type="password" autocomplete="current-password" placeholder="Senha">
+
+        <div id="loginMessage" class="authMessage"></div>
+
+        <button onclick="loginAccount()">ENTRAR</button>
+
+        <button class="secondary" onclick="guestLogin()">ENTRAR COMO CONVIDADO</button>
+
+        <div class="accountLinks">
+            <button class="accountLink" onclick="forgotPassword()">ESQUECI MINHA SENHA</button>
+            <button class="accountLink" onclick="showRegister()">CRIAR CONTA</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ATUALIZAR SENHA -->
+
+<div id="updatePassword" class="screen hidden">
+
+    <div class="form">
+
+        <h2>NOVA SENHA</h2>
+
+        <p style="opacity:.5;margin:10px 0">
+            Escolha uma nova senha.
+        </p>
+
+        <input id="newPasswordInput" type="password" autocomplete="new-password" placeholder="Nova senha">
+
+        <input id="newPasswordConfirmInput" type="password" autocomplete="new-password" placeholder="Confirmar nova senha">
+
+        <div id="passwordMessage" class="authMessage"></div>
+
+        <button onclick="updatePassword()">SALVAR SENHA</button>
+
+    </div>
+
+</div>
+
+
+<!-- MENU -->
+
+<div id="menu" class="screen hidden">
+
+    <button id="menuBackBtn" class="secondary" type="button" onclick="leaveToAuth()" aria-label="Voltar para criar conta e entrar" title="Voltar">
+        ←
+    </button>
+
+    <div class="logo">
+        REFLEX<br>
+        DRIVE
+    </div>
+
+    <div class="subtitle">
+        DRIVE • DODGE • SURVIVE
+    </div>
+
+    <button onclick="start()">
+        JOGAR
+    </button>
+
+    <button class="rankedButton" onclick="startRanked()">
+        🏆 RANQUEADA
+    </button>
+
+    <button class="secondary" onclick="openProfile()">
+        PERFIL
+    </button>
+
+    <button class="secondary" onclick="openRanking()">
+        RANKING
+    </button>
+
+    <button id="openShopButton" class="secondary" type="button" onclick="openShop()">
+        LOJA
+    </button>
+
+    <button class="secondary" onclick="openSearch()">
+        PESQUISAR ID
+    </button>
+
+    <button id="friendRequestsButton" class="secondary" onclick="openFriendRequests()" title="Convites de amizade" aria-label="Convites de amizade">
+        ✉
+        <span id="friendRequestBadge" class="friendBadge">0</span>
+    </button>
+
+</div>
+
+
+<!-- BATIDA -->
+
+<div id="over" class="screen hidden">
+
+    <div class="logo" style="font-size:38px">
+        BATIDA!
+    </div>
+
+    <p style="margin:18px">
+        Pontuação:
+        <b id="final">0</b>
+    </p>
+
+    <div id="rankedResult" class="hidden">
+        <div class="rankModeBadge">MODO RANQUEADO</div>
+        <div class="rankedReward"><b id="rankedGain">+0</b> pontos</div>
+        <div class="rankedRankLine" id="rankedRankLine">BRONZE I • 0 pontos</div>
+    </div>
+
+    <button onclick="start(rankedMode)">
+        JOGAR NOVAMENTE
+    </button>
+
+    <button class="secondary" onclick="goMenu()">
+        MENU
+    </button>
+
+</div>
+
+
+<!-- PAUSE -->
+
+<div id="pause" class="screen hidden">
+
+    <div class="logo" style="font-size:35px">
+        PAUSADO
+    </div>
+
+    <button onclick="resumeGame()">
+        CONTINUAR
+    </button>
+
+    <button class="secondary" onclick="goMenu()">
+        MENU
+    </button>
+
+</div>
+
+
+<!-- PERFIL -->
+
+<div id="profile" class="screen hidden">
+
+    <div class="profileCard">
+
+        <div class="banner">
+
+            <div
+                class="playerName"
+                id="profileName">
+                Nicollas
+            </div>
+
+            <div class="playerIdRow">
+                <span id="profilePlayerId">ID: #--------</span>
+                <button
+                    id="copyPlayerIdButton"
+                    type="button"
+                    onclick="copyPlayerId()"
+                    title="Copiar ID"
+                    aria-label="Copiar ID">
+                    ⧉
+                </button>
+            </div>
+
+            <!-- AVATAR -->
+            <div
+                class="avatar"
+                onclick="chooseAvatar()">
+
+                <span
+                    id="avatarPlaceholder"
+                    class="avatarPlaceholder">
+                    TOQUE PARA<br>
+                    ALTERAR
+                </span>
+
+                <img
+                    id="avatarImage"
+                    style="display:none"
+                    alt="Avatar">
+
+            </div>
+
+        </div>
+
+
+        <!-- INPUT DA GALERIA -->
+
+        <input
+            type="file"
+            id="avatarInput"
+            accept="image/*"
+            style="display:none">
+
+
+        <!-- RECORD / PATENTE -->
+
+        <div class="profileStats">
+
+            <div class="stat">
+
+                <div class="statTitle">
+                    RECORDE
+                </div>
+
+                <div
+                    class="statValue"
+                    id="profileRecord">
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="rankStat">
+
+                <div
+                    class="rankLogo"
+                    id="profileRankLogo">
+                </div>
+
+                <div class="rankInfo">
+
+                    <div class="rankSmall">
+                        PATENTE
+                    </div>
+
+                    <div
+                        class="rankName"
+                        id="profileRankName">
+                        BRONZE
+                    </div>
+
+                    <div id="profileRankPoints" style="font-size:9px;opacity:.45;margin-top:3px">0 pontos ranqueados</div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- BIO -->
+
+        <div class="bio">
+
+            <div class="bioHeader">
+
+                <div class="bioTitle">
+                    BIO
+                </div>
+
+                <button
+                    class="editBio"
+                    onclick="editBio()">
+                    EDITAR
+                </button>
+
+            </div>
+
+            <div
+                class="bioText"
+                id="profileBio">
+                Nenhuma bio definida.
+            </div>
+
+        </div>
+
+
+        <!-- CARRO -->
+
+        <div class="carShow">
+
+            <div class="carShadow"></div>
+
+            <div class="profileCar"></div>
+
+        </div>
+
+
+        <button
+            class="secondary"
+            onclick="closeProfile()">
+            VOLTAR
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- PESQUISAR ID -->
+
+<div id="search" class="screen hidden">
+
+    <div class="form">
+
+        <h2>PESQUISAR ID</h2>
+
+        <p style="opacity:.5;font-size:12px;margin:10px">
+            Digite o ID do jogador.
+        </p>
+
+        <input
+            id="searchInput"
+            placeholder="#ABC12345">
+
+        <button onclick="searchPlayer()">
+            PESQUISAR
+        </button>
+
+        <div id="searchResult"></div>
+
+        <button
+            class="secondary"
+            onclick="closeSearch()">
+            VOLTAR
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- CONVITES DE AMIZADE -->
+
+<div id="friendRequests" class="screen hidden">
+
+    <div class="logo" style="font-size:34px">
+        CONVITES
+    </div>
+
+    <div class="subtitle">
+        PEDIDOS DE AMIZADE
+    </div>
+
+    <div id="friendRequestsList" style="width:min(94%,400px);margin:12px auto"></div>
+
+    <button class="secondary" onclick="closeFriendRequests()">
+        VOLTAR
+    </button>
+
+</div>
+
+
+
+<!-- LOJA -->
+<div id="shop" class="screen hidden">
+    <div class="logo" style="font-size:35px">LOJA</div>
+    <div class="subtitle">CARROS</div>
+    <div style="margin-bottom:8px;font-weight:900">
+        🪙 <span id="shopCoins">0</span>&nbsp;&nbsp;&nbsp;🏆 <span id="shopRecord">0</span>
+    </div>
+    <div class="shopSection">GARAGEM</div>
+    <div class="shopList" id="shopList"></div>
+    <button class="secondary" onclick="closeShop()">VOLTAR</button>
+</div>
+
+<!-- RANKING -->
+
+<div id="ranking" class="screen hidden">
+
+    <div class="logo" style="font-size:34px">
+        RANKING
+    </div>
+
+    <div class="subtitle" id="rankingSubtitle">MAIORES RECORDES</div>
+
+    <div class="rankModeTabs">
+        <button id="recordRankBtn" class="active" onclick="setRankingType('record')">RECORD</button>
+        <button id="rankedRankBtn" class="secondary" onclick="setRankingType('ranked')">PATENTE</button>
+    </div>
+
+    <div class="rankTabs">
+        <button id="globalRankBtn" onclick="setRankingMode('global')">GLOBAL</button>
+        <button id="friendsRankBtn" class="secondary" onclick="setRankingMode('friends')">AMIGOS</button>
+    </div>
+
+    <div class="rankList" id="rankList"></div>
+
+    <div class="friendList" id="friendList"></div>
+
+    <button
+        class="secondary"
+        onclick="closeRanking()">
+        VOLTAR
+    </button>
+
+</div>
+
+
+<script>
+
+/* LOJA */
+function openShop(){
+    running=false;
+
+    /* A loja é uma tela independente. Não deixe um erro de dados
+       impedir que ela seja aberta. */
+    if(!account){
+        showLogin();
+        return;
+    }
+
+    try{
+        ensureShopData();
+    }catch(error){
+        console.error("Erro ao preparar a loja:",error);
+        if(!Array.isArray(account.owned_cars))
+            account.owned_cars=["default"];
+        if(!account.selected_car)
+            account.selected_car="default";
+    }
+
+    document.querySelectorAll(".screen").forEach(x=>x.classList.add("hidden"));
+
+    const shopScreen=document.getElementById("shop");
+    if(!shopScreen){
+        console.error("Tela da loja não encontrada.");
+        return;
+    }
+
+    shopScreen.classList.remove("hidden");
+
+    try{
+        renderShop();
+    }catch(error){
+        console.error("Erro ao renderizar a loja:",error);
+        const list=document.getElementById("shopList");
+        if(list)
+            list.innerHTML='<div style="opacity:.6;padding:15px">Não foi possível carregar os carros da loja.</div>';
+    }
+}
+
+function closeShop(){
+    document.getElementById("shop").classList.add("hidden");
+    document.getElementById("menu").classList.remove("hidden");
+}
+
+function shopPreview(id){
+    const colors={default:"#d82c35",f1:"#10161d",ferrari:"#b90f20",fusca:"#f1d15a",gt:"#0d1217",rally:"#e9edf0"};
+    const isDefault=id==="default";
+    const carClass=isDefault ? "profileCar" : "profileCar premiumCar";
+    const markup=isDefault ? "" : `<div class="pc-body">${getProfileCarMarkup(id)}</div>`;
+
+    return `<div class="shopPreview" style="background:${colors[id]||colors.default}">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform:scale(.72)">
+            <div class="${carClass}" style="position:relative;left:auto;top:auto;width:76px;height:124px;animation:none;box-shadow:none">
+                ${markup}
+            </div>
+        </div>
+    </div>`;
+}
+
+function renderShop(){
+    ensureShopData();
+    document.getElementById("shopCoins").textContent=Number(account.coins)||0;
+    document.getElementById("shopRecord").textContent=Number(account.record)||0;
+
+    let html="";
+    carSkins.forEach(car=>{
+        const owned=account.owned_cars.includes(car.id);
+        const equipped=account.selected_car===car.id;
+        const price=car.currency==="free"?"GRÁTIS":car.currency==="record"?"🏆 "+car.price.toLocaleString("pt-BR")+" pontos":"🪙 "+car.price.toLocaleString("pt-BR")+" moedas";
+        const action=equipped
+            ? '<button class="shopBuy equipped" disabled>EQUIPADO</button>'
+            : owned
+            ? `<button class="shopBuy owned" onclick="equipCar('${car.id}')">EQUIPAR</button>`
+            : `<button class="shopBuy" onclick="buyCar('${car.id}')">COMPRAR</button>`;
+        html+=`<div class="shopItem">${shopPreview(car.id)}<div class="shopInfo"><div class="shopName">${car.name}</div><div class="shopDesc">${car.desc}</div><div class="shopPrice">${owned?"ADQUIRIDO":price}</div></div>${action}</div>`;
+    });
+    document.getElementById("shopList").innerHTML=html;
+}
+
+async function buyCar(id){
+    ensureShopData();
+    const car=carSkins.find(c=>c.id===id);
+    if(!car||account.owned_cars.includes(id)) return;
+
+    if(car.currency==="record" && Number(account.record||0)<car.price){
+        alert("Você precisa de "+car.price.toLocaleString("pt-BR")+" pontos de recorde."); return;
+    }
+    if(car.currency==="coins"){
+        if(Number(account.coins||0)<car.price){alert("Você precisa de "+car.price.toLocaleString("pt-BR")+" moedas.");return;}
+        account.coins=Number(account.coins||0)-car.price;
+    }
+    account.owned_cars.push(id);
+
+    /* Comprar desbloqueia o carro, mas NÃO o equipa automaticamente. */
+    const ok=await saveShopToSupabase();
+    if(!ok) return;
+    renderShop();
+    loadProfile();
+}
+
+async function equipCar(id){
+    ensureShopData();
+    if(!account.owned_cars.includes(id)) return;
+    account.selected_car=id;
+    const ok=await saveShopToSupabase();
+    if(!ok) return;
+    renderShop();
+    loadProfile();
+}
+
+
+
+const canvas =
+document.getElementById("game");
+
+const ctx =
+canvas.getContext("2d");
+
+let W,H;
+
+let roadX;
+let roadW;
+let laneW;
+
+let running=false;
+let paused=false;
+
+let score=0;
+let coins=0;
+let rankedMode=false;
+let rankedPoints=0;
+
+let speed=5;
+
+let spawnTimer=30;
+let coinTimer=60;
+
+let dragging=false;
+
+let touchStartX=0;
+let touchStartY=0;
+
+let playerStartX=0;
+let playerStartY=0;
+
+let cars=[];
+let money=[];
+let smoke=[];
+
+let account=null;
+let players=[];
+let profileReturnScreen="menu";
+
+const carSkins=[
+    {id:"default",name:"Street",desc:"O carro original do Reflex Drive.",currency:"free",price:0, aura:false},
+    {id:"f1",name:"Reflex GP",desc:"Monoposto estilo kart, asas, slicks e patrocínios Reflex Drive.",currency:"record",price:5000,aura:true},
+    {id:"ferrari",name:"Rosso GT",desc:"Esportivo italiano de rua com aero e listras de corrida.",currency:"coins",price:1000,aura:true},
+    {id:"fusca",name:"Classic 53",desc:"Clássico retrô preparado para pista, com número e adesivos.",currency:"record",price:1000,aura:true},
+    {id:"gt",name:"Night GT",desc:"Grand tourer largo, rodas grandes e escape brilhante.",currency:"coins",price:1500,aura:true},
+    {id:"rally",name:"Rally X",desc:"Carro de rali com faróis, asas e pintura de competição.",currency:"record",price:2500,aura:true}
+];
+
+function ensureShopData(){
+    if(!account) return;
+
+    if(!Array.isArray(account.owned_cars))
+        account.owned_cars=["default"];
+
+    if(!account.owned_cars.includes("default"))
+        account.owned_cars.unshift("default");
+
+    /* Nunca equipa automaticamente um carro que o jogador não possui. */
+    if(!account.selected_car || !account.owned_cars.includes(account.selected_car))
+        account.selected_car="default";
+}
+
+function saveShopToSupabase(){
+    if(!currentUser||!account) return Promise.resolve(false);
+    return saveProfile({
+        owned_cars:account.owned_cars,
+        selected_car:account.selected_car
+    });
+}
+
+let currentUser=null;
+let rankingMode="global";
+let rankingType="record";
+let viewingPublicProfile=false;
+
+/* SUPABASE */
+const SUPABASE_URL="https://ycnlkwzrkyohajqcrswz.supabase.co";
+const SUPABASE_KEY="sb_publishable_4zwJsTKGNGZ26zijrnNoGQ_qDOy7U_p";
+const supabaseClient=window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    {
+        auth:{
+            persistSession:true,
+            autoRefreshToken:true,
+            detectSessionInUrl:true
+        }
+    }
+);
+
+/* JOGADOR */
+
+const player={
+    x:0,
+    y:0,
+    w:58,
+    h:98
+};
+
+
+/* TAMANHO */
+
+function resize(){
+
+    W=innerWidth;
+    H=innerHeight;
+
+    roadW=Math.min(W*.86,560);
+
+    roadX=(W-roadW)/2;
+
+    laneW=roadW/3;
+
+    canvas.width=W;
+    canvas.height=H;
+
+    if(!player.x){
+
+        player.x =
+            roadX+
+            roadW/2-
+            player.w/2;
+
+        player.y =
+            H-
+            player.h-
+            20;
+
+    }
+
+}
+
+addEventListener(
+    "resize",
+    resize
+);
+
+resize();
+
+
+/* FUNDO */
+
+function background(){
+
+    ctx.fillStyle="#172832";
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+    ctx.fillStyle="#262c30";
+
+    ctx.fillRect(
+        roadX,
+        0,
+        roadW,
+        H
+    );
+
+    ctx.fillStyle="#d9d9d9";
+
+    ctx.fillRect(
+        roadX,
+        0,
+        4,
+        H
+    );
+
+    ctx.fillRect(
+        roadX+roadW-4,
+        0,
+        4,
+        H
+    );
+
+    let offset =
+        (performance.now()/7)%130;
+
+    ctx.fillStyle="#eee";
+
+    for(
+        let lane=1;
+        lane<3;
+        lane++
+    ){
+
+        for(
+            let y=-130+offset;
+            y<H;
+            y+=130
+        ){
+
+            ctx.fillRect(
+                roadX+
+                lane*laneW-
+                3,
+                y,
+                6,
+                65
+            );
+
+        }
+
+    }
+
+}
+
+
+/* RETÂNGULO */
+
+function roundRect(
+    x,
+    y,
+    w,
+    h,
+    r
+){
+
+    r=Math.min(
+        r,
+        w/2,
+        h/2
+    );
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x+r,
+        y
+    );
+
+    ctx.arcTo(
+        x+w,
+        y,
+        x+w,
+        y+h,
+        r
+    );
+
+    ctx.arcTo(
+        x+w,
+        y+h,
+        x,
+        y+h,
+        r
+    );
+
+    ctx.arcTo(
+        x,
+        y+h,
+        x,
+        y,
+        r
+    );
+
+    ctx.arcTo(
+        x,
+        y,
+        x+w,
+        y,
+        r
+    );
+
+    ctx.closePath();
+
+}
+
+
+/* CARRO */
+
+function drawCar(
+    car,
+    color,
+    variant
+){
+    const skin=(car===player && account && account.selected_car) ? account.selected_car : "default";
+
+    ctx.save();
+    ctx.translate(car.x+car.w/2,car.y+car.h/2);
+
+    /* A hitbox continua sendo car.w x car.h. O que muda é apenas o desenho. */
+    if(car===player && skin!=="default"){
+        try{
+            drawPremiumCar(skin,car.w,car.h);
+        }catch(error){
+            console.error("Erro ao desenhar a skin "+skin+". Usando carro original.",error);
+            ctx.shadowBlur=0;
+            ctx.globalAlpha=1;
+            ctx.globalCompositeOperation="source-over";
+            drawDefaultCar(car.w,car.h,color,variant);
+        }
+    }else{
+        drawDefaultCar(car.w,car.h,color,variant);
+    }
+
+    ctx.restore();
+}
+
+function drawDefaultCar(w,h,color,variant){
+    ctx.fillStyle="#0007";
+    roundRect(-w/2+3,-h/2+5,w,h,14); ctx.fill();
+
+    ctx.fillStyle=color;
+    roundRect(-w/2,-h/2,w,h,15); ctx.fill();
+
+    ctx.fillStyle="#18313e";
+    roundRect(-w*.31,-h*.34,w*.62,h*.28,7); ctx.fill();
+
+    ctx.fillStyle="#090b0d";
+    roundRect(-w/2-2,-h*.24,7,20,2); ctx.fill();
+    roundRect(w/2-5,-h*.24,7,20,2); ctx.fill();
+
+    ctx.fillStyle="#fff1a2";
+    roundRect(-w*.33,h*.30,10,5,2); ctx.fill();
+    roundRect(w*.16,h*.30,10,5,2); ctx.fill();
+
+    if(variant===1){
+        ctx.fillStyle="#fff";
+        ctx.fillRect(-w*.42,-3,6,32);
+    }
+    if(variant===2){
+        ctx.fillStyle="#111";
+        ctx.fillRect(-w*.43,-h*.05,w*.86,5);
+        ctx.fillStyle="#ff4444";
+        ctx.fillRect(-w*.30,h*.30,7,5);
+        ctx.fillRect(w*.18,h*.30,7,5);
+    }
+}
+
+function rr(x,y,w,h,r){ roundRect(x,y,w,h,r); ctx.fill(); }
+
+function drawWheel(x,y,w,h){
+    ctx.fillStyle="#06080a"; rr(x,y,w,h,6);
+    ctx.fillStyle="#65727b"; rr(x+3,y+5,w-6,h-10,4);
+    ctx.fillStyle="#151a1e"; rr(x+6,y+8,w-12,h-16,3);
+}
+
+function sponsor(text,x,y,size,angle=0,fill="#fff"){
+    ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
+    ctx.fillStyle=fill; ctx.font=`900 ${size}px Arial`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(text,0,0); ctx.restore();
+}
+
+function drawExhaustAura(w,h,style){
+    ctx.save();
+    const a=
+        style==="blue" ? "#41c8ff" :
+        style==="red" ? "#ff4250" :
+        style==="gold" ? "#ffd84a" :
+        style==="green" ? "#39e58c" :
+        "#b56cff";
+    ctx.globalCompositeOperation="lighter";
+    ctx.fillStyle=a;
+    ctx.shadowColor=a; ctx.shadowBlur=14;
+    ctx.beginPath(); ctx.ellipse(0,h*.49,w*.22,h*.10,0,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha=.55;
+    ctx.beginPath(); ctx.ellipse(-w*.13,h*.54,w*.10,h*.08,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(w*.13,h*.54,w*.10,h*.08,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+}
+
+function drawPremiumCar(skin,w,h){
+    /*
+     * As skins são somente visuais. A hitbox continua sendo car.w x car.h.
+     * Cada carro possui uma silhueta própria, rodas, cabine, aero,
+     * iluminação, patrocinadores e detalhes de competição.
+     */
+    const auraStyle =
+        skin==="f1" ? "blue" :
+        skin==="ferrari" ? "red" :
+        skin==="fusca" ? "gold" :
+        skin==="gt" ? "purple" :
+        "green";
+
+    drawExhaustAura(w,h,auraStyle);
+
+    if(skin==="f1"){
+        /* MONOPOSTO — nariz fino, cockpit, rodas expostas e duas asas. */
+        ctx.fillStyle="#080b0f";
+        rr(-w*.12,-h*.50,w*.24,h*.96,7);
+
+        ctx.fillStyle="#d9e1e7";
+        rr(-w*.07,-h*.46,w*.14,h*.72,4);
+
+        ctx.fillStyle="#d21f30";
+        rr(-w*.045,-h*.44,w*.09,h*.68,2);
+
+        ctx.fillStyle="#050709";
+        ctx.beginPath();
+        ctx.ellipse(0,-h*.13,w*.19,h*.12,0,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle="#52616b";
+        ctx.beginPath();
+        ctx.ellipse(0,-h*.13,w*.11,h*.065,0,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.strokeStyle="#aeb9c1";
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.moveTo(-w*.22,-h*.30); ctx.lineTo(-w*.10,-h*.15);
+        ctx.moveTo(w*.22,-h*.30); ctx.lineTo(w*.10,-h*.15);
+        ctx.moveTo(-w*.22,h*.27); ctx.lineTo(-w*.09,h*.15);
+        ctx.moveTo(w*.22,h*.27); ctx.lineTo(w*.09,h*.15);
+        ctx.stroke();
+
+        drawWheel(-w*.57,-h*.31,w*.22,h*.30);
+        drawWheel(w*.35,-h*.31,w*.22,h*.30);
+        drawWheel(-w*.57,h*.18,w*.22,h*.30);
+        drawWheel(w*.35,h*.18,w*.22,h*.30);
+
+        ctx.fillStyle="#111820";
+        rr(-w*.55,-h*.46,w*1.10,6,2);
+        rr(-w*.58,h*.39,w*1.16,8,2);
+        ctx.fillStyle="#d52334";
+        rr(-w*.48,h*.42,w*.96,3,1);
+
+        ctx.fillStyle="#1d2932";
+        rr(-w*.34,-h*.02,w*.20,h*.20,5);
+        rr(w*.14,-h*.02,w*.20,h*.20,5);
+        ctx.fillStyle="#41c8ff";
+        rr(-w*.31,h*.04,w*.08,5,2);
+        rr(w*.23,h*.04,w*.08,5,2);
+
+        sponsor("REFLEX",0,-h*.30,7,0,"#ffffff");
+        sponsor("DRIVE",0,-h*.22,6,0,"#ffcf32");
+        sponsor("RD",-w*.39,h*.07,6,-Math.PI/2,"#ffffff");
+        sponsor("01",w*.39,h*.07,7,-Math.PI/2,"#ffcf32");
+        return;
+    }
+
+    if(skin==="ferrari"){
+        /* ESPORTIVO VERMELHO — nariz baixo, cabine, saias, aero e escape duplo. */
+        ctx.fillStyle="#7f0a16";
+        ctx.beginPath();
+        ctx.moveTo(-w*.40,-h*.50);
+        ctx.quadraticCurveTo(-w*.50,-h*.36,-w*.44,h*.38);
+        ctx.quadraticCurveTo(0,h*.53,w*.44,h*.38);
+        ctx.quadraticCurveTo(w*.50,-h*.36,w*.40,-h*.50);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle="#c91225";
+        ctx.beginPath();
+        ctx.moveTo(-w*.34,-h*.47);
+        ctx.quadraticCurveTo(-w*.42,-h*.30,-w*.36,h*.37);
+        ctx.quadraticCurveTo(0,h*.46,w*.36,h*.37);
+        ctx.quadraticCurveTo(w*.42,-h*.30,w*.34,-h*.47);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle="#11171c";
+        ctx.beginPath();
+        ctx.moveTo(-w*.28,-h*.28);
+        ctx.quadraticCurveTo(0,-h*.40,w*.28,-h*.28);
+        ctx.lineTo(w*.20,-h*.05);
+        ctx.lineTo(-w*.20,-h*.05);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle="#6d8794";
+        ctx.beginPath();
+        ctx.moveTo(-w*.20,-h*.25);
+        ctx.quadraticCurveTo(0,-h*.32,w*.20,-h*.25);
+        ctx.lineTo(w*.15,-h*.10);
+        ctx.lineTo(-w*.15,-h*.10);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle="#f2d24c";
+        rr(-w*.055,-h*.49,w*.11,h*.88,3);
+
+        ctx.fillStyle="#fff4b0";
+        rr(-w*.30,-h*.40,w*.12,7,3);
+        rr(w*.18,-h*.40,w*.12,7,3);
+
+        drawWheel(-w*.51,-h*.22,w*.16,h*.26);
+        drawWheel(w*.35,-h*.22,w*.16,h*.26);
+        drawWheel(-w*.51,h*.21,w*.16,h*.26);
+        drawWheel(w*.35,h*.21,w*.16,h*.26);
+
+        ctx.fillStyle="#530711";
+        rr(-w*.49,h*.09,w*.98,7,2);
+        ctx.fillStyle="#0a0d10";
+        rr(-w*.52,h*.35,w*1.04,7,2);
+
+        ctx.fillStyle="#252d33";
+        rr(-w*.30,h*.43,w*.60,6,2);
+        ctx.fillStyle="#d6dde2";
+        rr(-w*.19,h*.47,7,7,2);
+        rr(w*.12,h*.47,7,7,2);
+
+        sponsor("REFLEX",0,-h*.19,7,0,"#ffffff");
+        sponsor("DRIVE",0,-h*.10,6,0,"#ffd43b");
+        sponsor("R",-w*.35,h*.13,6,-Math.PI/2,"#ffffff");
+        sponsor("D",w*.35,h*.13,6,-Math.PI/2,"#ffffff");
+        return;
+    }
+
+    if(skin==="fusca"){
+        /* FUSCA DE CORRIDA — silhueta arredondada e para-lamas separados. */
+        ctx.fillStyle="#b99022";
+        ctx.beginPath();
+        ctx.ellipse(0,h*.01,w*.48,h*.46,0,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle="#f2d15b";
+        ctx.beginPath();
+        ctx.ellipse(0,-h*.01,w*.44,h*.43,0,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle="#f7efcf";
+        ctx.beginPath();
+        ctx.ellipse(0,-h*.20,w*.30,h*.21,0,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle="#24414f";
+        ctx.beginPath();
+        ctx.ellipse(0,-h*.19,w*.245,h*.145,0,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.strokeStyle="#9b771c";
+        ctx.lineWidth=5;
+        ctx.beginPath();
+        ctx.arc(-w*.36,-h*.02,w*.18,-Math.PI*.85,Math.PI*.85);
+        ctx.arc(w*.36,-h*.02,w*.18,Math.PI*.15,Math.PI*1.85);
+        ctx.stroke();
+
+        drawWheel(-w*.53,-h*.22,w*.17,h*.25);
+        drawWheel(w*.36,-h*.22,w*.17,h*.25);
+        drawWheel(-w*.53,h*.19,w*.17,h*.25);
+        drawWheel(w*.36,h*.19,w*.17,h*.25);
+
+        ctx.fillStyle="#d72d35";
+        rr(-w*.39,h*.02,w*.78,6,2);
+
+        ctx.fillStyle="#fff";
+        ctx.beginPath();
+        ctx.arc(0,h*.18,12,0,Math.PI*2);
+        ctx.fill();
+        sponsor("53",0,h*.18,10,0,"#111");
+
+        ctx.fillStyle="#ffffff";
+        rr(-w*.38,h*.31,w*.76,5,2);
+        ctx.fillStyle="#9da7ad";
+        rr(-w*.18,h*.44,7,8,2);
+        rr(w*.11,h*.44,7,8,2);
+
+        sponsor("REFLEX DRIVE",0,h*.34,5,0,"#111");
+        return;
+    }
+
+    if(skin==="gt"){
+        /* GT — largo, baixo, cabine recuada, rodas grandes, splitter e asa. */
+        ctx.fillStyle="#070b0f";
+        ctx.beginPath();
+        ctx.moveTo(-w*.48,-h*.42);
+        ctx.quadraticCurveTo(-w*.54,-h*.10,-w*.45,h*.38);
+        ctx.lineTo(-w*.25,h*.48);
+        ctx.lineTo(w*.25,h*.48);
+        ctx.quadraticCurveTo(w*.54,h*.10,w*.48,-h*.42);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle="#141d24";
+        rr(-w*.47,-h*.38,w*.94,h*.76,12);
+
+        ctx.fillStyle="#33434e";
+        ctx.beginPath();
+        ctx.moveTo(-w*.28,-h*.30);
+        ctx.quadraticCurveTo(0,-h*.43,w*.28,-h*.30);
+        ctx.lineTo(w*.20,-h*.08);
+        ctx.lineTo(-w*.20,-h*.08);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle="#8da2ae";
+        ctx.beginPath();
+        ctx.moveTo(-w*.19,-h*.27);
+        ctx.quadraticCurveTo(0,-h*.34,w*.19,-h*.27);
+        ctx.lineTo(w*.14,-h*.13);
+        ctx.lineTo(-w*.14,-h*.13);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle="#e4b72e";
+        rr(-w*.045,-h*.47,w*.09,h*.88,2);
+
+        ctx.fillStyle="#dff7ff";
+        rr(-w*.34,-h*.38,w*.15,7,3);
+        rr(w*.19,-h*.38,w*.15,7,3);
+
+        drawWheel(-w*.54,-h*.20,w*.18,h*.29);
+        drawWheel(w*.36,-h*.20,w*.18,h*.29);
+        drawWheel(-w*.54,h*.19,w*.18,h*.29);
+        drawWheel(w*.36,h*.19,w*.18,h*.29);
+
+        ctx.fillStyle="#2d3941";
+        rr(-w*.54,h*.31,w*1.08,7,2);
+        rr(-w*.34,h*.43,w*.68,7,2);
+        ctx.fillStyle="#e9bd2f";
+        rr(-w*.24,h*.44,w*.12,4,1);
+        rr(w*.12,h*.44,w*.12,4,1);
+
+        ctx.fillStyle="#0c1115";
+        rr(-w*.57,h*.34,w*1.14,6,2);
+
+        sponsor("REFLEX",0,-h*.18,7,0,"#ffffff");
+        sponsor("DRIVE",0,-h*.09,6,0,"#e9bd2f");
+        sponsor("GT",-w*.37,h*.12,6,-Math.PI/2,"#ffffff");
+        return;
+    }
+
+    /* RALLY — carro alto, para-lamas, faróis extras, faixas e asa traseira. */
+    ctx.fillStyle="#b8c2c9";
+    rr(-w*.47,-h*.46,w*.94,h*.90,11);
+
+    ctx.fillStyle="#e9edf0";
+    rr(-w*.43,-h*.43,w*.86,h*.84,10);
+
+    ctx.fillStyle="#202e38";
+    ctx.beginPath();
+    ctx.moveTo(-w*.31,-h*.31);
+    ctx.lineTo(w*.31,-h*.31);
+    ctx.lineTo(w*.24,-h*.08);
+    ctx.lineTo(-w*.24,-h*.08);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle="#59717e";
+    rr(-w*.19,-h*.27,w*.38,h*.13,4);
+
+    ctx.fillStyle="#245f9c";
+    rr(-w*.055,-h*.47,w*.11,h*.86,2);
+    ctx.fillStyle="#e13a35";
+    rr(-w*.43,-h*.01,w*.86,6,2);
+
+    ctx.strokeStyle="#303a41";
+    ctx.lineWidth=4;
+    ctx.beginPath();
+    ctx.arc(-w*.37,-h*.02,w*.18,-Math.PI*.85,Math.PI*.85);
+    ctx.arc(w*.37,-h*.02,w*.18,Math.PI*.15,Math.PI*1.85);
+    ctx.stroke();
+
+    drawWheel(-w*.53,-h*.22,w*.17,h*.26);
+    drawWheel(w*.36,-h*.22,w*.17,h*.26);
+    drawWheel(-w*.53,h*.19,w*.17,h*.26);
+    drawWheel(w*.36,h*.19,w*.17,h*.26);
+
+    ctx.fillStyle="#fff2a8";
+    ctx.shadowColor="#fff2a8";
+    ctx.shadowBlur=8;
+    for(const dx of [-.23,-.08,.08,.23]){
+        ctx.beginPath();
+        ctx.arc(w*dx,h*.20,5,0,Math.PI*2);
+        ctx.fill();
+    }
+    ctx.shadowBlur=0;
+
+    ctx.fillStyle="#121820";
+    rr(-w*.55,h*.34,w*1.10,7,2);
+    rr(-w*.36,h*.42,w*.72,5,2);
+
+    ctx.fillStyle="#9ca8ae";
+    rr(-w*.18,h*.45,7,8,2);
+    rr(w*.11,h*.45,7,8,2);
+
+    sponsor("REFLEX",0,-h*.20,7,0,"#e13a35");
+    sponsor("DRIVE",0,-h*.11,6,0,"#111");
+    sponsor("RX",-w*.37,h*.10,6,-Math.PI/2,"#ffffff");
+    sponsor("07",w*.37,h*.10,7,-Math.PI/2,"#f3cf42");
+}
+function renderProfileCar(skinId){
+    const el=document.querySelector(".profileCar");
+    if(!el) return;
+
+    const skin=carSkins.find(c=>c.id===skinId) || carSkins[0];
+
+    /* O carro Street usa exatamente a carroceria original do perfil. */
+    if(skin.id==="default"){
+        el.className="profileCar";
+        el.innerHTML="";
+        return;
+    }
+
+    el.className="profileCar premiumCar skin-"+skin.id;
+    el.innerHTML="";
+
+    const body=document.createElement("div");
+    body.className="pc-body";
+    body.innerHTML=getProfileCarMarkup(skin.id);
+    el.appendChild(body);
+}
+
+function getProfileCarMarkup(id){
+    if(id==="f1") return `
+        <div class="pc-aura" style="background:#41c8ff"></div>
+        <div style="position:absolute;left:21px;top:4px;width:23px;height:104px;background:#10161d;border-radius:9px"></div>
+        <div style="position:absolute;left:28px;top:7px;width:9px;height:84px;background:#e7edf2;border-radius:4px"></div>
+        <div style="position:absolute;left:24px;top:52px;width:17px;height:22px;background:#0a0d11;border-radius:10px"></div>
+        <div class="pc-wing" style="left:0;top:4px;width:65px;height:6px"></div>
+        <div class="pc-wing" style="left:-2px;bottom:7px;width:69px;height:8px"></div>
+        <div class="pc-wheel" style="left:-8px;top:42px"></div><div class="pc-wheel" style="right:-8px;top:42px"></div>
+        <div class="pc-stripe" style="left:29px;top:16px;width:7px;height:70px;background:#c91f2d"></div>
+        <div class="pc-sponsor" style="left:-2px;top:70px;font-size:7px;color:#fff">REFLEX</div>
+        <div class="pc-sponsor" style="left:47px;top:70px;font-size:6px;color:#ffcf32">DRIVE</div>`;
+    if(id==="ferrari") return `
+        <div class="pc-aura" style="background:#ff4250"></div>
+        <div style="position:absolute;left:3px;top:8px;width:59px;height:96px;background:#b90f20;border-radius:17px"></div>
+        <div style="position:absolute;left:19px;top:17px;width:27px;height:28px;background:#151b20;border-radius:8px"></div>
+        <div class="pc-wheel" style="left:-6px;top:43px"></div><div class="pc-wheel" style="right:-6px;top:43px"></div>
+        <div class="pc-stripe" style="left:29px;top:9px;width:7px;height:86px;background:#f2d24c"></div>
+        <div class="pc-sponsor" style="left:2px;top:66px;font-size:7px;color:#fff">REFLEX</div>
+        <div class="pc-sponsor" style="left:49px;top:66px;font-size:6px;color:#ffd43b">DRIVE</div>
+        <div style="position:absolute;left:18px;bottom:3px;width:7px;height:10px;background:#cfd5da"></div><div style="position:absolute;right:18px;bottom:3px;width:7px;height:10px;background:#cfd5da"></div>`;
+    if(id==="fusca") return `
+        <div class="pc-aura" style="background:#ffd84a"></div>
+        <div style="position:absolute;left:4px;top:8px;width:57px;height:94px;background:#f1d15a;border-radius:50%"></div>
+        <div style="position:absolute;left:18px;top:18px;width:29px;height:28px;background:#18313e;border-radius:50%"></div>
+        <div class="pc-wheel" style="left:-7px;top:44px"></div><div class="pc-wheel" style="right:-7px;top:44px"></div>
+        <div style="position:absolute;left:25px;top:56px;width:15px;height:15px;background:#fff;border-radius:50%"></div>
+        <div class="pc-number" style="left:29px;top:59px;color:#111">53</div>
+        <div class="pc-sponsor" style="left:3px;top:77px;font-size:5px;color:#111">REFLEX DRIVE</div>`;
+    if(id==="gt") return `
+        <div class="pc-aura" style="background:#b56cff"></div>
+        <div style="position:absolute;left:2px;top:7px;width:61px;height:98px;background:#0d1217;border-radius:15px"></div>
+        <div style="position:absolute;left:18px;top:17px;width:29px;height:25px;background:#35434d;border-radius:7px"></div>
+        <div class="pc-wheel" style="left:-7px;top:44px"></div><div class="pc-wheel" style="right:-7px;top:44px"></div>
+        <div class="pc-stripe" style="left:29px;top:8px;width:7px;height:89px;background:#e4b72e"></div>
+        <div class="pc-wing" style="left:-4px;bottom:7px;width:73px;height:7px"></div>
+        <div class="pc-sponsor" style="left:2px;top:68px;font-size:7px;color:#fff">REFLEX</div><div class="pc-sponsor" style="left:49px;top:68px;font-size:6px;color:#e9bd2f">DRIVE</div>`;
+    return `
+        <div class="pc-aura" style="background:#39e58c"></div>
+        <div style="position:absolute;left:4px;top:7px;width:57px;height:98px;background:#e9edf0;border-radius:13px"></div>
+        <div style="position:absolute;left:28px;top:5px;width:9px;height:100px;background:#245f9c"></div>
+        <div style="position:absolute;left:19px;top:19px;width:27px;height:25px;background:#24323c;border-radius:7px"></div>
+        <div class="pc-wheel" style="left:-7px;top:44px"></div><div class="pc-wheel" style="right:-7px;top:44px"></div>
+        <div class="pc-wing" style="left:-3px;bottom:7px;width:71px;height:7px"></div>
+        <div class="pc-sponsor" style="left:2px;top:69px;font-size:7px;color:#e13a35">REFLEX</div><div class="pc-sponsor" style="left:49px;top:69px;font-size:6px;color:#111">DRIVE</div>`;
+}
+
+
+
+/* FUMAÇA */
+
+function addSmoke(){
+
+    smoke.push({
+
+        x:
+            player.x+
+            player.w/2,
+
+        y:
+            player.y+
+            player.h,
+
+        r:
+            3+
+            Math.random()*3,
+
+        a:.5
+
+    });
+
+    if(smoke.length>25)
+        smoke.shift();
+
+}
+
+
+function drawSmoke(){
+
+    for(const s of smoke){
+
+        s.y+=.6;
+
+        s.r+=.1;
+
+        s.a-=.02;
+
+        ctx.globalAlpha=
+            Math.max(
+                0,
+                s.a
+            );
+
+        ctx.fillStyle="#aaa";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            s.x,
+            s.y,
+            s.r,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+    ctx.globalAlpha=1;
+
+    smoke =
+        smoke.filter(
+            s=>s.a>0
+        );
+
+}
+
+
+/* CARROS DO TRÂNSITO */
+
+function spawnCar(){
+
+    let lane =
+        Math.floor(
+            Math.random()*3
+        );
+
+    let types=[
+        [56,94],
+        [62,106],
+        [58,115]
+    ];
+
+    let type =
+        types[
+            Math.floor(
+                Math.random()*
+                types.length
+            )
+        ];
+
+
+    let colors=[
+        "#e23832",
+        "#287dcc",
+        "#e0a928",
+        "#16825c",
+        "#7b48a9",
+        "#68737b",
+        "#d85d22"
+    ];
+
+
+    cars.push({
+
+        x:
+            roadX+
+            lane*laneW+
+            laneW/2-
+            type[0]/2,
+
+        y:-140,
+
+        w:type[0],
+
+        h:type[1],
+
+        v:
+            speed*
+            (
+                .82+
+                Math.random()*.2
+            ),
+
+        color:
+            colors[
+                Math.floor(
+                    Math.random()*
+                    colors.length
+                )
+            ],
+
+        variant:
+            Math.floor(
+                Math.random()*3
+            )
+
+    });
+
+}
+
+
+/* MOEDA */
+
+function spawnCoin(){
+
+    let lane =
+        Math.floor(
+            Math.random()*3
+        );
+
+    money.push({
+
+        x:
+            roadX+
+            lane*laneW+
+            laneW/2,
+
+        y:-20
+
+    });
+
+}
+
+
+/* COLISÃO */
+
+function hit(a,b){
+
+    return(
+        a.x<b.x+b.w &&
+        a.x+a.w>b.x &&
+        a.y<b.y+b.h &&
+        a.y+a.h>b.y
+    );
+
+}
+
+
+/* COLISÃO COM MOEDA */
+
+function hitCoin(a,b){
+
+    let closestX =
+        Math.max(
+            a.x,
+            Math.min(
+                b.x,
+                a.x+a.w
+            )
+        );
+
+    let closestY =
+        Math.max(
+            a.y,
+            Math.min(
+                b.y,
+                a.y+a.h
+            )
+        );
+
+    return Math.hypot(
+        b.x-closestX,
+        b.y-closestY
+    )<16;
+
+}
+
+
+/* UPDATE */
+
+function update(){
+
+    if(
+        !running ||
+        paused
+    )
+        return;
+
+
+    speed+=.0012;
+
+    score+=.05;
+
+
+    spawnTimer--;
+
+    coinTimer--;
+
+
+    if(spawnTimer<=0){
+
+        spawnCar();
+
+        spawnTimer =
+            Math.max(
+                38,
+                72-speed*2.5
+            );
+
+    }
+
+
+    if(coinTimer<=0){
+
+        spawnCoin();
+
+        coinTimer=72;
+
+    }
+
+
+    if(Math.random()<.6)
+        addSmoke();
+
+
+    /* CARROS */
+
+    for(
+        let i=cars.length-1;
+        i>=0;
+        i--
+    ){
+
+        let c=cars[i];
+
+        c.y+=c.v;
+
+
+        /* BATIDA */
+
+        if(hit(player,c)){
+
+            gameOver();
+
+            return;
+
+        }
+
+
+        if(c.y>H+150){
+
+            cars.splice(i,1);
+
+            score+=10;
+
+        }
+
+    }
+
+
+    /* MOEDAS */
+
+    for(
+        let i=money.length-1;
+        i>=0;
+        i--
+    ){
+
+        let m=money[i];
+
+        m.y+=speed;
+
+
+        if(hitCoin(player,m)){
+
+            coins++;
+
+            score+=40;
+
+            money.splice(i,1);
+
+        }
+        else if(
+            m.y>H+40
+        ){
+
+            money.splice(i,1);
+
+        }
+
+    }
+
+
+    document.getElementById(
+        "score"
+    ).textContent =
+        Math.floor(score);
+
+
+    document.getElementById(
+        "coins"
+    ).textContent =
+        coins;
+
+}
+
+
+/* DRAW */
+
+function draw(){
+
+    background();
+
+
+    /* moedas */
+
+    for(const m of money){
+
+        ctx.fillStyle="#f4bd23";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            m.x,
+            m.y,
+            12,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+
+        ctx.fillStyle="#6d4b00";
+
+        ctx.font=
+            "bold 12px Arial";
+
+        ctx.textAlign="center";
+
+        ctx.fillText(
+            "$",
+            m.x,
+            m.y+4
+        );
+
+    }
+
+
+    /* carros */
+
+    for(const c of cars){
+
+        drawCar(
+            c,
+            c.color,
+            c.variant
+        );
+
+    }
+
+
+    /* fumaça */
+
+    drawSmoke();
+
+
+    /* jogador */
+
+    drawCar(
+        player,
+        "#d92732",
+        0
+    );
+
+}
+
+
+/* LOOP */
+
+function loop(){
+
+    update();
+
+    draw();
+
+    requestAnimationFrame(
+        loop
+    );
+
+}
+
+
+/* CONTROLE POR ARRASTAR */
+
+canvas.addEventListener(
+    "pointerdown",
+    e=>{
+
+        if(
+            !running ||
+            paused
+        )
+            return;
+
+
+        dragging=true;
+
+
+        touchStartX=
+            e.clientX;
+
+        touchStartY=
+            e.clientY;
+
+
+        playerStartX=
+            player.x;
+
+        playerStartY=
+            player.y;
+
+
+        canvas.setPointerCapture(
+            e.pointerId
+        );
+
+    }
+);
+
+
+canvas.addEventListener(
+    "pointermove",
+    e=>{
+
+        if(
+            !dragging ||
+            !running ||
+            paused
+        )
+            return;
+
+
+        let dx =
+            e.clientX-
+            touchStartX;
+
+        let dy =
+            e.clientY-
+            touchStartY;
+
+
+        player.x =
+            playerStartX+dx;
+
+        player.y =
+            playerStartY+dy;
+
+
+        /* limites laterais */
+
+        player.x =
+            Math.max(
+                roadX+5,
+                Math.min(
+                    player.x,
+                    roadX+
+                    roadW-
+                    player.w-
+                    5
+                )
+            );
+
+
+        /* limites verticais */
+
+        player.y =
+            Math.max(
+                5,
+                Math.min(
+                    player.y,
+                    H-
+                    player.h-
+                    5
+                )
+            );
+
+    }
+);
+
+
+canvas.addEventListener(
+    "pointerup",
+    e=>{
+
+        dragging=false;
+
+        try{
+
+            canvas.releasePointerCapture(
+                e.pointerId
+            );
+
+        }catch(err){}
+
+    }
+);
+
+
+canvas.addEventListener(
+    "pointercancel",
+    ()=>{
+        dragging=false;
+    }
+);
+
+
+/* PATENTES DA RANQUEADA */
+const ranks=[
+    ["BRONZE I",0,"bronze",1],
+    ["BRONZE II",500,"bronze",2],
+    ["BRONZE III",1000,"bronze",3],
+    ["PRATA I",1500,"silver",1],
+    ["PRATA II",2000,"silver",2],
+    ["PRATA III",2500,"silver",3],
+    ["OURO I",3000,"gold",1],
+    ["OURO II",4000,"gold",2],
+    ["OURO III",5000,"gold",3],
+    ["PLATINA I",6000,"platinum",1],
+    ["PLATINA II",7000,"platinum",2],
+    ["PLATINA III",8000,"platinum",3],
+    ["DIAMANTE I",9000,"diamond",1],
+    ["DIAMANTE II",11000,"diamond",2],
+    ["DIAMANTE III",13000,"diamond",3],
+    ["MESTRE I",15000,"master",1],
+    ["MESTRE II",17500,"master",2],
+    ["MESTRE III",20000,"master",3]
+];
+
+function getRank(points){
+    points=Number(points)||0;
+    let rank=ranks[0];
+    for(const r of ranks){
+        if(points>=r[1]) rank=r;
+    }
+    return rank;
+}
+
+function getRankProgress(points){
+    points=Math.max(0,Number(points)||0);
+    const rank=getRank(points);
+    const index=ranks.indexOf(rank);
+    const next=ranks[index+1]||null;
+    return {rank,index,next,progress:next ? Math.min(1,(points-rank[1])/(next[1]-rank[1])) : 1};
+}
+
+function rankLogo(rank){
+    return `<div class="rankBadge ${rank[2]}"></div>`;
+}
+
+function getStoredRankPoints(){
+    try{
+        /* A coluna players.rank_points é a fonte principal da ranqueada. */
+        const dbValue=account?.rank_points;
+        if(dbValue!==undefined && dbValue!==null){
+            const parsed=Math.max(0,Number(dbValue)||0);
+            rankedPoints=parsed;
+            return parsed;
+        }
+        const metadataValue=currentUser?.user_metadata?.reflex_rank_points;
+        if(metadataValue!==undefined && metadataValue!==null){
+            const parsed=Math.max(0,Number(metadataValue)||0);
+            rankedPoints=parsed;
+            return parsed;
+        }
+        const key=currentUser ? `reflexDriveRankPoints:${currentUser.id}` : "reflexDriveRankPoints:guest";
+        return Math.max(0,Number(localStorage.getItem(key))||0);
+    }catch(e){ return 0; }
+}
+
+function setStoredRankPoints(value){
+    value=Math.max(0,Math.floor(Number(value)||0));
+    try{
+        const key=currentUser ? `reflexDriveRankPoints:${currentUser.id}` : "reflexDriveRankPoints:guest";
+        localStorage.setItem(key,String(value));
+    }catch(e){}
+    rankedPoints=value;
+    if(account) account.rank_points=value;
+
+    /* Mantém os pontos também no perfil público da tabela players.
+       Se a coluna ainda não existir, o fallback de user_metadata/localStorage
+       continua funcionando para o próprio jogador. */
+    if(currentUser){
+        supabaseClient.from("players").update({rank_points:value}).eq("id",currentUser.id)
+            .then(({error})=>{ if(error) console.warn("rank_points ainda não está disponível em players:",error.message); });
+    }
+
+    /* Também grava na conta Supabase usando user_metadata, sem exigir
+       uma nova coluna na tabela players. Assim a patente acompanha o
+       jogador em outro dispositivo/navegador. */
+    if(currentUser){
+        supabaseClient.auth.updateUser({
+            data:{reflex_rank_points:value}
+        }).then(({data,error})=>{
+            if(!error && data?.user){
+                currentUser=data.user;
+            }
+        }).catch(error=>console.error("Erro ao sincronizar pontos ranqueados:",error));
+    }
+}
+
+function refreshRankedHud(){
+    const hud=document.getElementById("rankedHud");
+    if(hud) hud.classList.toggle("active",rankedMode);
+    const el=document.getElementById("rankedPointsHud");
+    if(el) el.textContent=rankedPoints.toLocaleString("pt-BR");
+}
+
+function refreshRankedProfile(){
+    if(!account) return;
+    rankedPoints=getStoredRankPoints();
+    const rank=getRank(rankedPoints);
+    const logo=document.getElementById("profileRankLogo");
+    const name=document.getElementById("profileRankName");
+    const points=document.getElementById("profileRankPoints");
+    if(logo) logo.innerHTML=rankLogo(rank);
+    if(name) name.textContent=rank[0];
+    if(points) points.textContent=rankedPoints.toLocaleString("pt-BR")+" pontos ranqueados";
+}
+
+/* GERAR ID */
+
+function generateID(){
+
+    return "#"+
+        Math.random()
+        .toString(36)
+        .slice(2,7)
+        .toUpperCase()+
+        Math.random()
+        .toString(36)
+        .slice(2,5)
+        .toUpperCase();
+
+}
+
+
+/* AUTENTICAÇÃO */
+
+function authMessage(id,message){
+    const el=document.getElementById(id);
+    if(el) el.textContent=message||"";
+}
+
+function showRegister(){
+    document.querySelectorAll(".screen").forEach(x=>x.classList.add("hidden"));
+    document.getElementById("register").classList.remove("hidden");
+}
+
+function showLogin(){
+    document.querySelectorAll(".screen").forEach(x=>x.classList.add("hidden"));
+    document.getElementById("login").classList.remove("hidden");
+}
+
+function showMenu(){
+    document.querySelectorAll(".screen").forEach(x=>x.classList.add("hidden"));
+    document.getElementById("menu").classList.remove("hidden");
+}
+
+async function leaveToAuth(){
+    running=false;
+    paused=false;
+    dragging=false;
+
+    try{
+        await supabaseClient.auth.signOut();
+    }catch(err){
+        console.error("Erro ao sair da conta:",err);
+    }
+
+    account=null;
+    currentUser=null;
+    showRegister();
+}
+
+function getRedirectUrl(){
+    return window.location.origin+window.location.pathname;
+}
+
+async function createAccount(){
+    const name=document.getElementById("nameInput").value.trim();
+    const email=document.getElementById("emailInput").value.trim();
+    const password=document.getElementById("passwordInput").value;
+    const confirm=document.getElementById("confirmPasswordInput").value;
+    const bio=document.getElementById("bioInput").value.trim();
+
+    authMessage("registerMessage","");
+
+    if(!name){
+        authMessage("registerMessage","Digite seu nome.");
+        return;
+    }
+
+    if(!email){
+        authMessage("registerMessage","Digite seu e-mail.");
+        return;
+    }
+
+    if(password.length<6){
+        authMessage("registerMessage","A senha precisa ter pelo menos 6 caracteres.");
+        return;
+    }
+
+    if(password!==confirm){
+        authMessage("registerMessage","As senhas não conferem.");
+        return;
+    }
+
+    authMessage("registerMessage","Criando conta...");
+
+    const {data,error}=await supabaseClient.auth.signUp({
+        email,
+        password,
+        options:{
+            data:{
+                username:name
+            },
+            emailRedirectTo:getRedirectUrl()
+        }
+    });
+
+    if(error){
+        console.error(error);
+        authMessage("registerMessage",error.message);
+        return;
+    }
+
+    if(!data.user){
+        authMessage("registerMessage","Não foi possível criar a conta.");
+        return;
+    }
+
+    if(data.session){
+        const profile=await createOrLoadProfile(data.user,{name,bio});
+        if(!profile){
+            authMessage("registerMessage","Conta criada, mas não foi possível carregar o perfil.");
+            return;
+        }
+        authMessage("registerMessage","");
+        showMenu();
+        loadProfile();
+        return;
+    }
+
+    authMessage(
+        "registerMessage",
+        "Conta criada. Verifique seu e-mail e depois entre na conta."
+    );
+}
+
+async function guestLogin(){
+    authMessage("registerMessage","");
+    authMessage("loginMessage","");
+
+    const guestName=prompt("Digite seu nome de jogador:","");
+
+    if(guestName===null)
+        return;
+
+    const cleanGuestName=guestName.trim().slice(0,18);
+
+    if(!cleanGuestName){
+        alert("Digite um nome para entrar como convidado.");
+        return;
+    }
+
+    const activeSession=await supabaseClient.auth.getSession();
+    if(activeSession.data.session){
+        const existingUser=activeSession.data.session.user;
+        const profile=await createOrLoadProfile(existingUser);
+        if(profile){
+            showMenu();
+            loadProfile();
+            return;
+        }
+    }
+
+    authMessage("registerMessage","Entrando como convidado...");
+    authMessage("loginMessage","Entrando como convidado...");
+
+    const {data,error}=await supabaseClient.auth.signInAnonymously({
+        options:{
+            data:{
+                username:cleanGuestName
+            }
+        }
+    });
+
+    if(error){
+        console.error(error);
+        let message=error.message||"Não foi possível entrar como convidado.";
+        if(message.toLowerCase().includes("anonymous sign-ins are disabled")){
+            message="O modo convidado está desativado no Supabase. Ative Anonymous Sign-Ins em Authentication > Sign In / Providers e tente novamente.";
+        }
+        authMessage("registerMessage",message);
+        authMessage("loginMessage",message);
+        return;
+    }
+
+    const profile=await createOrLoadProfile(data.user,{name:cleanGuestName,bio:""});
+
+    if(!profile){
+        await supabaseClient.auth.signOut();
+        authMessage("registerMessage","Convidado entrou, mas não foi possível criar o perfil.");
+        authMessage("loginMessage","Convidado entrou, mas não foi possível criar o perfil.");
+        return;
+    }
+
+    authMessage("registerMessage","");
+    authMessage("loginMessage","");
+    rankedPoints=getStoredRankPoints();
+    showMenu();
+    loadProfile();
+}
+
+async function loginAccount(){
+    const email=document.getElementById("loginEmailInput").value.trim();
+    const password=document.getElementById("loginPasswordInput").value;
+
+    authMessage("loginMessage","");
+
+    if(!email||!password){
+        authMessage("loginMessage","Digite seu e-mail e sua senha.");
+        return;
+    }
+
+    authMessage("loginMessage","Entrando...");
+
+    const {data,error}=await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if(error){
+        console.error(error);
+        authMessage("loginMessage",error.message);
+        return;
+    }
+
+    const profile=await createOrLoadProfile(data.user);
+    if(!profile){
+        authMessage("loginMessage","Login feito, mas não foi possível carregar o perfil.");
+        return;
+    }
+
+    authMessage("loginMessage","");
+    showMenu();
+    loadProfile();
+}
+
+async function forgotPassword(){
+    const email=document.getElementById("loginEmailInput").value.trim();
+
+    if(!email){
+        authMessage("loginMessage","Digite seu e-mail primeiro.");
+        return;
+    }
+
+    authMessage("loginMessage","Enviando link de recuperação...");
+
+    const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{
+        redirectTo:getRedirectUrl()
+    });
+
+    if(error){
+        console.error(error);
+        authMessage("loginMessage",error.message);
+        return;
+    }
+
+    authMessage(
+        "loginMessage",
+        "Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha."
+    );
+}
+
+async function updatePassword(){
+    const password=document.getElementById("newPasswordInput").value;
+    const confirm=document.getElementById("newPasswordConfirmInput").value;
+
+    authMessage("passwordMessage","");
+
+    if(password.length<6){
+        authMessage("passwordMessage","A senha precisa ter pelo menos 6 caracteres.");
+        return;
+    }
+
+    if(password!==confirm){
+        authMessage("passwordMessage","As senhas não conferem.");
+        return;
+    }
+
+    const {error}=await supabaseClient.auth.updateUser({
+        password
+    });
+
+    if(error){
+        console.error(error);
+        authMessage("passwordMessage",error.message);
+        return;
+    }
+
+    authMessage("passwordMessage","Senha atualizada.");
+    setTimeout(showMenu,700);
+}
+
+function generateID(){
+    return "#"+
+        Math.random().toString(36).slice(2,7).toUpperCase()+
+        Math.random().toString(36).slice(2,5).toUpperCase();
+}
+
+async function createOrLoadProfile(user,initialData={}){
+    if(!user) return null;
+
+    currentUser=user;
+
+    const {data:existing,error:loadError}=await supabaseClient
+        .from("players")
+        .select("*")
+        .eq("id",user.id)
+        .maybeSingle();
+
+    if(loadError){
+        console.error(loadError);
+        return null;
+    }
+
+    if(existing){
+        account=existing;
+        players=[existing];
+        return existing;
+    }
+
+    const username=(
+        initialData.name ||
+        user.user_metadata?.username ||
+        (user.is_anonymous ? "Convidado" : "Jogador")
+    ).trim().slice(0,18);
+
+    const profile={
+        id:user.id,
+        username,
+        player_id:generateID(),
+        bio:(initialData.bio||"").slice(0,80),
+        avatar:null,
+        record:0,
+        coins:0,
+        owned_cars:["default"],
+        selected_car:"default"
+    };
+
+    const {data:created,error:createError}=await supabaseClient
+        .from("players")
+        .insert(profile)
+        .select("*")
+        .single();
+
+    if(createError){
+        console.error(createError);
+        return null;
+    }
+
+    account=created;
+    players=[created];
+    return created;
+}
+
+async function loadCurrentAccount(){
+    const {data:{session}}=await supabaseClient.auth.getSession();
+
+    if(!session){
+        account=null;
+        currentUser=null;
+        showRegister();
+        return;
+    }
+
+    const profile=await createOrLoadProfile(session.user);
+
+    if(!profile){
+        await supabaseClient.auth.signOut();
+        account=null;
+        currentUser=null;
+        showLogin();
+        return;
+    }
+
+    showMenu();
+    loadProfile();
+    updateFriendRequestBadge();
+}
+
+supabaseClient.auth.onAuthStateChange(async(event,session)=>{
+    if(event==="PASSWORD_RECOVERY"){
+        document.querySelectorAll(".screen").forEach(x=>x.classList.add("hidden"));
+        document.getElementById("updatePassword").classList.remove("hidden");
+        return;
+    }
+
+    if(event==="SIGNED_OUT"){
+        account=null;
+        currentUser=null;
+        showLogin();
+        return;
+    }
+
+    if(session && (event==="SIGNED_IN" || event==="INITIAL_SESSION")){
+        const profile=await createOrLoadProfile(session.user);
+        if(profile){
+            account=profile;
+            currentUser=session.user;
+            showMenu();
+            loadProfile();
+            updateFriendRequestBadge();
+        }
+    }
+});
+
+
+/* CARREGAR PERFIL */
+
+function setProfileAvatar(avatar){
+    const img=document.getElementById("avatarImage");
+    const placeholder=document.getElementById("avatarPlaceholder");
+
+    if(avatar){
+        img.src=avatar;
+        img.style.display="block";
+        placeholder.style.display="none";
+    }else{
+        img.removeAttribute("src");
+        img.style.display="none";
+        placeholder.style.display="block";
+    }
+}
+
+function loadProfile(){
+
+    if(!account)
+        return;
+
+
+    document.getElementById(
+        "profileName"
+    ).textContent =
+        account.username;
+
+    document.getElementById(
+        "profilePlayerId"
+    ).textContent =
+        "ID: " + (account.player_id || "--------");
+
+
+    document.getElementById(
+        "profileRecord"
+    ).textContent =
+        account.record;
+
+
+    document.getElementById(
+        "profileBio"
+    ).textContent =
+        account.bio ||
+        "Nenhuma bio definida.";
+
+
+    /* patente: a patente do perfil vem dos PONTOS RANQUEADOS,
+       nunca do recorde da partida. */
+    rankedPoints=getStoredRankPoints();
+    const rank=getRank(rankedPoints);
+
+    document.getElementById(
+        "profileRankLogo"
+    ).innerHTML =
+        rankLogo(rank);
+
+    document.getElementById(
+        "profileRankName"
+    ).textContent =
+        rank[0];
+
+    const profileRankPoints=document.getElementById("profileRankPoints");
+    if(profileRankPoints){
+        profileRankPoints.textContent=
+            rankedPoints.toLocaleString("pt-BR")+" pontos ranqueados";
+    }
+
+
+    /* carro equipado */
+    renderProfileCar(account.selected_car || "default");
+
+    /* avatar */
+    setProfileAvatar(account.avatar);
+
+    viewingPublicProfile=false;
+    document.getElementById("copyPlayerIdButton").style.display="inline-flex";
+    document.querySelector(".editBio").style.display="inline-flex";
+    document.querySelector(".avatar").style.pointerEvents="auto";
+
+}
+
+
+function showPublicProfile(player,returnScreen="search"){
+    profileReturnScreen=returnScreen;
+    if(!player) return;
+
+    viewingPublicProfile=true;
+
+    document.querySelectorAll(".screen").forEach(x=>x.classList.add("hidden"));
+    document.getElementById("profile").classList.remove("hidden");
+
+    document.getElementById("profileName").textContent=player.username || "Jogador";
+    document.getElementById("profilePlayerId").textContent="ID: "+(player.player_id || "--------");
+    document.getElementById("profileRecord").textContent=player.record || 0;
+    document.getElementById("profileBio").textContent=player.bio || "Nenhuma bio definida.";
+
+    const isOwnProfile=player.id===currentUser?.id;
+    const publicRankPoints=isOwnProfile ? getStoredRankPoints() : Math.max(0,Number(player.rank_points)||0);
+    const rank=getRank(publicRankPoints);
+    document.getElementById("profileRankLogo").innerHTML=rankLogo(rank);
+    document.getElementById("profileRankName").textContent=rank[0];
+    const publicRankPointsEl=document.getElementById("profileRankPoints");
+    if(publicRankPointsEl) publicRankPointsEl.textContent=publicRankPoints.toLocaleString("pt-BR")+" pontos ranqueados";
+
+    const publicSkin = carSkins.some(c=>c.id===player.selected_car)
+        ? player.selected_car
+        : "default";
+    renderProfileCar(publicSkin);
+
+    setProfileAvatar(player.avatar);
+
+    document.getElementById("copyPlayerIdButton").style.display="none";
+    document.querySelector(".editBio").style.display="none";
+    document.querySelector(".avatar").style.pointerEvents="none";
+}
+
+
+async function saveProfile(changes){
+    if(!currentUser||!account)
+        return false;
+
+    const {data,error}=await supabaseClient
+        .from("players")
+        .update(changes)
+        .eq("id",currentUser.id)
+        .select("*")
+        .single();
+
+    if(error){
+        console.error(error);
+        alert("Não foi possível salvar o perfil.");
+        return false;
+    }
+
+    account=data;
+    players=[data];
+    return true;
+}
+
+
+/* ESCOLHER AVATAR */
+
+function chooseAvatar(){
+
+    if(!account)
+        return;
+
+
+    const input =
+        document.getElementById(
+            "avatarInput"
+        );
+
+
+    input.value="";
+
+
+    input.click();
+
+}
+
+
+/* FOTO ESCOLHIDA */
+
+document.getElementById(
+    "avatarInput"
+).addEventListener(
+    "change",
+    async function(){
+
+        const file =
+            this.files[0];
+
+
+        if(!file)
+            return;
+
+
+        if(
+            !file.type.startsWith(
+                "image/"
+            )
+        ){
+
+            alert(
+                "Escolha uma imagem."
+            );
+
+            return;
+
+        }
+
+
+        /*
+        A imagem original é carregada
+        sem ser deformada.
+        */
+
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload =
+            async function(e){
+
+                account.avatar=e.target.result;
+
+                await saveProfile({
+                    avatar:account.avatar
+                });
+
+                loadProfile();
+
+            };
+
+
+        reader.readAsDataURL(
+            file
+        );
+
+    }
+);
+
+
+/* EDITAR BIO */
+
+function editBio(){
+
+    let bio =
+        prompt(
+            "Digite sua nova bio:",
+            account.bio || ""
+        );
+
+
+    if(bio===null)
+        return;
+
+
+    account.bio =
+        bio.slice(
+            0,
+            80
+        );
+
+    saveProfile({
+        bio:account.bio
+    }).then(loadProfile);
+
+}
+
+
+/* COMEÇAR JOGO */
+
+function startRanked(){
+    start(true);
+}
+
+function start(isRanked=false){
+    rankedMode=!!isRanked;
+    rankedPoints=getStoredRankPoints();
+    refreshRankedHud();
+
+    cars=[];
+    money=[];
+    smoke=[];
+
+
+    score=0;
+
+    coins=0;
+
+    speed=5;
+
+
+    spawnTimer=25;
+
+    coinTimer=55;
+
+
+    player.x =
+        roadX+
+        roadW/2-
+        player.w/2;
+
+
+    player.y =
+        H-
+        player.h-
+        20;
+
+
+    running=true;
+
+    paused=false;
+
+    dragging=false;
+
+
+    document
+        .querySelectorAll(
+            ".screen"
+        )
+        .forEach(
+            x=>
+                x.classList.add(
+                    "hidden"
+                )
+        );
+
+}
+
+
+/* GAME OVER */
+
+function gameOver(){
+
+    running=false;
+
+    paused=false;
+
+    dragging=false;
+
+
+    cars.forEach(
+        c=>{
+            c.v=0;
+        }
+    );
+
+
+    let finalScore =
+        Math.floor(
+            score
+        );
+
+
+    let rankedGain=0;
+
+    if(account){
+        const newRecord=Math.max(
+            finalScore,
+            Number(account.record)||0
+        );
+        const newCoins=(Number(account.coins)||0)+coins;
+
+        account.record=newRecord;
+        account.coins=newCoins;
+
+        /* RANQUEADA:
+           até 1.000 pontos na partida = perde 10%;
+           acima de 1.000 = ganha 10%. */
+        if(rankedMode){
+            rankedGain=Math.floor(finalScore*0.10);
+            if(finalScore<=1000) rankedGain=-rankedGain;
+            setStoredRankPoints(rankedPoints+rankedGain);
+        }
+
+        saveProfile({
+            record:newRecord,
+            coins:newCoins
+        }).then(()=>{
+            loadProfile();
+        });
+    }else if(rankedMode){
+        rankedGain=Math.floor(finalScore*0.10);
+        if(finalScore<=1000) rankedGain=-rankedGain;
+        setStoredRankPoints(rankedPoints+rankedGain);
+    }
+
+
+    document.getElementById(
+        "final"
+    ).textContent =
+        finalScore;
+
+    const rankedResult=document.getElementById("rankedResult");
+    if(rankedResult){
+        rankedResult.classList.toggle("hidden",!rankedMode);
+        if(rankedMode){
+            const rewardEl=document.getElementById("rankedGain");
+            rewardEl.textContent=(rankedGain>=0?"+":"")+rankedGain.toLocaleString("pt-BR");
+            rewardEl.parentElement.classList.toggle("rankedLoss",rankedGain<0);
+            const rp=getRankProgress(rankedPoints);
+            const next=rp.next ? ` • próximo: ${rp.next[0]} em ${rp.next[1].toLocaleString("pt-BR")}` : " • RANK MÁXIMO";
+            document.getElementById("rankedRankLine").textContent=`${rp.rank[0]} • ${rankedPoints.toLocaleString("pt-BR")} pontos${next}`;
+        }
+    }
+
+    document.getElementById(
+        "over"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* MENU */
+
+function goMenu(){
+
+    running=false;
+
+    paused=false;
+
+    dragging=false;
+
+
+    document
+        .querySelectorAll(
+            ".screen"
+        )
+        .forEach(
+            x=>
+                x.classList.add(
+                    "hidden"
+                )
+        );
+
+
+    document.getElementById(
+        "menu"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* PAUSE */
+
+document.getElementById(
+    "pauseBtn"
+).onclick =
+function(){
+
+    if(!running)
+        return;
+
+
+    paused=true;
+
+    dragging=false;
+
+
+    document.getElementById(
+        "pause"
+    ).classList.remove(
+        "hidden"
+    );
+
+};
+
+
+function resumeGame(){
+
+    paused=false;
+
+
+    document.getElementById(
+        "pause"
+    ).classList.add(
+        "hidden"
+    );
+
+}
+
+
+/* ABRIR PERFIL */
+
+function openProfile(){
+
+    running=false;
+    viewingPublicProfile=false;
+    profileReturnScreen="menu";
+
+    loadProfile();
+
+
+    document.getElementById(
+        "menu"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "profile"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+function closeProfile(){
+
+    document.getElementById(
+        "profile"
+    ).classList.add(
+        "hidden"
+    );
+
+    if(viewingPublicProfile){
+        viewingPublicProfile=false;
+
+        const target =
+            profileReturnScreen==="ranking"
+            ? "ranking"
+            : profileReturnScreen==="search"
+            ? "search"
+            : "menu";
+
+        document.getElementById(target).classList.remove("hidden");
+
+        if(target==="ranking")
+            renderRanking();
+
+        return;
+    }
+
+    document.getElementById(
+        "menu"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* COPIAR ID */
+
+async function copyPlayerId(){
+
+    if(!account || !account.player_id)
+        return;
+
+    const id=account.player_id;
+    const button=document.getElementById("copyPlayerIdButton");
+
+    try{
+        await navigator.clipboard.writeText(id);
+
+        if(button){
+            const oldText=button.textContent;
+            button.textContent="COPIADO!";
+            setTimeout(()=>{
+                button.textContent=oldText;
+            },1200);
+        }
+    }catch(error){
+        console.error(error);
+
+        /* fallback para navegadores que bloqueiam Clipboard API */
+        const input=document.createElement("input");
+        input.value=id;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        input.remove();
+
+        if(button){
+            const oldText=button.textContent;
+            button.textContent="COPIADO!";
+            setTimeout(()=>{
+                button.textContent=oldText;
+            },1200);
+        }
+    }
+}
+
+
+/* PESQUISAR */
+
+function openSearch(){
+    document.getElementById("menu").classList.add("hidden");
+    document.getElementById("search").classList.remove("hidden");
+}
+
+function closeSearch(){
+    document.getElementById("search").classList.add("hidden");
+    document.getElementById("menu").classList.remove("hidden");
+}
+
+async function searchPlayer(){
+    let id=document.getElementById("searchInput").value
+        .trim()
+        .toUpperCase();
+
+    let result=document.getElementById("searchResult");
+
+    if(!id){
+        result.innerHTML=`<div style="margin-top:10px;padding:13px;background:#222930;border-radius:10px">Digite um ID.</div>`;
+        return;
+    }
+
+    result.innerHTML=`<div style="margin-top:10px;opacity:.5">Pesquisando...</div>`;
+
+    const {data:found,error}=await supabaseClient
+        .from("players")
+        .select("id,username,player_id,bio,avatar,record,rank_points,coins,owned_cars,selected_car")
+        .eq("player_id",id)
+        .maybeSingle();
+
+    if(error){
+        console.error(error);
+        result.innerHTML=`<div style="margin-top:10px;padding:13px;background:#222930;border-radius:10px">Erro ao pesquisar jogador.</div>`;
+        return;
+    }
+
+    if(!found){
+        result.innerHTML=`<div style="margin-top:10px;padding:13px;background:#222930;border-radius:10px">Jogador não encontrado.</div>`;
+        return;
+    }
+
+    const rank=(found.id===currentUser?.id) ? getRank(getStoredRankPoints()) : null;
+
+    result.innerHTML=`
+        <div style="margin-top:10px;padding:14px;background:#222930;border-radius:10px;text-align:left">
+            ${
+                found.avatar
+                ? `<img src="${found.avatar}" style="width:55px;height:55px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px">`
+                : `<span style="display:inline-flex;width:55px;height:55px;align-items:center;justify-content:center;background:#303840;border-radius:8px;vertical-align:middle;margin-right:8px">👤</span>`
+            }
+            <b style="font-size:20px">${found.username}</b>
+            <div style="opacity:.5;font-size:11px">ID: ${found.player_id}</div>
+            <br>
+            Recorde: <b>${found.record}</b>
+            <br>
+            Patente: <b>${rank[0]}</b>
+            <button class="friendButton" onclick='viewSearchedProfile(${JSON.stringify(found).replace(/'/g,"&#39;")})'>VER PERFIL</button>
+            ${
+                currentUser && found.id!==currentUser.id
+                ? `<button class="friendButton" onclick="addFriend('${found.id}', this)">ADICIONAR AOS AMIGOS</button>`
+                : ``
+            }
+        </div>
+    `;
+}
+
+
+function viewSearchedProfile(player){
+    showPublicProfile(player,"search");
+}
+
+
+async function addFriend(friendId,button){
+    if(!currentUser||!friendId||friendId===currentUser.id)
+        return;
+
+    if(button){
+        button.disabled=true;
+        button.textContent="ENVIANDO...";
+    }
+
+    // Verifica se já são amigos.
+    const {data:existingFriend,error:friendCheckError}=await supabaseClient
+        .from("friends")
+        .select("user_id,friend_id")
+        .or(`and(user_id.eq.${currentUser.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${currentUser.id})`)
+        .maybeSingle();
+
+    if(friendCheckError){
+        console.error(friendCheckError);
+    }
+
+    if(existingFriend){
+        if(button) button.textContent="JÁ SÃO AMIGOS ✓";
+        return;
+    }
+
+    // Verifica se já existe convite em qualquer direção.
+    const {data:pending,error:pendingError}=await supabaseClient
+        .from("friend_requests")
+        .select("id,sender_id,receiver_id")
+        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUser.id})`)
+        .maybeSingle();
+
+    if(pendingError){
+        console.error(pendingError);
+    }
+
+    if(pending){
+        if(pending.sender_id===currentUser.id){
+            if(button) button.textContent="CONVITE ENVIADO ✓";
+        }else{
+            if(button) button.textContent="ACEITE O CONVITE DELE";
+        }
+        return;
+    }
+
+    const {error}=await supabaseClient
+        .from("friend_requests")
+        .insert({
+            sender_id:currentUser.id,
+            receiver_id:friendId
+        });
+
+    if(error){
+        console.error("Erro ao enviar convite:",error);
+
+        if(button){
+            button.disabled=false;
+            button.textContent="ADICIONAR AOS AMIGOS";
+        }
+
+        if(error.code==="23505")
+            alert("Você já enviou um convite para esse jogador.");
+        else
+            alert("Não foi possível enviar o convite. Verifique as policies da tabela friend_requests no Supabase.");
+
+        return;
+    }
+
+    if(button){
+        button.textContent="CONVITE ENVIADO ✓";
+        button.disabled=true;
+    }
+}
+
+
+
+async function getFriendRequestCount(){
+    if(!currentUser) return 0;
+
+    const {count,error}=await supabaseClient
+        .from("friend_requests")
+        .select("id",{count:"exact",head:true})
+        .eq("receiver_id",currentUser.id);
+
+    if(error){
+        console.error(error);
+        return 0;
+    }
+
+    return count||0;
+}
+
+async function updateFriendRequestBadge(){
+    const badge=document.getElementById("friendRequestBadge");
+    if(!badge) return;
+
+    const count=await getFriendRequestCount();
+    badge.textContent=count>99?"99+":count;
+    badge.style.display=count>0?"inline-block":"none";
+}
+
+async function openFriendRequests(){
+    document.getElementById("menu").classList.add("hidden");
+    document.getElementById("friendRequests").classList.remove("hidden");
+    await renderFriendRequests();
+}
+
+function closeFriendRequests(){
+    document.getElementById("friendRequests").classList.add("hidden");
+    document.getElementById("menu").classList.remove("hidden");
+    updateFriendRequestBadge();
+}
+
+async function renderFriendRequests(){
+    const list=document.getElementById("friendRequestsList");
+    list.innerHTML=`<div style="opacity:.5">Carregando convites...</div>`;
+
+    if(!currentUser){
+        list.innerHTML=`<div style="opacity:.5">Entre em uma conta para ver seus convites.</div>`;
+        return;
+    }
+
+    const {data:requests,error}=await supabaseClient
+        .from("friend_requests")
+        .select("id,sender_id,receiver_id,created_at")
+        .eq("receiver_id",currentUser.id)
+        .order("created_at",{ascending:false});
+
+    if(error){
+        console.error(error);
+        list.innerHTML=`<div style="opacity:.5">Não foi possível carregar os convites.</div>`;
+        return;
+    }
+
+    if(!requests||!requests.length){
+        list.innerHTML=`<div style="opacity:.5">Você não tem convites de amizade.</div>`;
+        updateFriendRequestBadge();
+        return;
+    }
+
+    const ids=requests.map(r=>r.sender_id);
+    const {data:senders,error:sendersError}=await supabaseClient
+        .from("players")
+        .select("id,username,player_id,avatar,record,bio")
+        .in("id",ids);
+
+    if(sendersError){
+        console.error(sendersError);
+        list.innerHTML=`<div style="opacity:.5">Não foi possível carregar os jogadores.</div>`;
+        return;
+    }
+
+    const byId=new Map((senders||[]).map(p=>[p.id,p]));
+
+    list.innerHTML=requests.map(req=>{
+        const p=byId.get(req.sender_id);
+        if(!p) return "";
+
+        return `
+            <div class="requestItem">
+                <div style="display:flex;align-items:center;gap:10px">
+                    ${p.avatar
+                        ? `<img src="${p.avatar}" style="width:48px;height:48px;object-fit:cover;border-radius:8px">`
+                        : `<span style="display:inline-flex;width:48px;height:48px;align-items:center;justify-content:center;background:#303840;border-radius:8px">👤</span>`}
+                    <div>
+                        <b style="font-size:18px">${p.username}</b>
+                        <div style="opacity:.5;font-size:11px">${p.player_id||""}</div>
+                    </div>
+                </div>
+                <div class="requestActions">
+                    <button onclick="acceptFriendRequest('${req.id}','${req.sender_id}',this)">ACEITAR</button>
+                    <button class="secondary" onclick="rejectFriendRequest('${req.id}',this)">RECUSAR</button>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    updateFriendRequestBadge();
+}
+
+async function acceptFriendRequest(requestId,senderId,button){
+    if(!currentUser) return;
+
+    if(button){
+        button.disabled=true;
+        button.textContent="ACEITANDO...";
+    }
+
+    const userA=currentUser.id<senderId?currentUser.id:senderId;
+    const userB=currentUser.id<senderId?senderId:currentUser.id;
+
+    const {error:friendError}=await supabaseClient
+        .from("friends")
+        .insert({user_id:userA,friend_id:userB});
+
+    if(friendError && friendError.code!=="23505"){
+        console.error(friendError);
+        alert("Não foi possível aceitar o convite.");
+        if(button){
+            button.disabled=false;
+            button.textContent="ACEITAR";
+        }
+        return;
+    }
+
+    const {error:deleteError}=await supabaseClient
+        .from("friend_requests")
+        .delete()
+        .eq("id",requestId)
+        .eq("receiver_id",currentUser.id);
+
+    if(deleteError){
+        console.error(deleteError);
+        alert("Amigo adicionado, mas não foi possível remover o convite.");
+    }
+
+    await renderFriendRequests();
+}
+
+async function rejectFriendRequest(requestId,button){
+    if(!currentUser) return;
+
+    if(button){
+        button.disabled=true;
+        button.textContent="REMOVENDO...";
+    }
+
+    const {error}=await supabaseClient
+        .from("friend_requests")
+        .delete()
+        .eq("id",requestId)
+        .eq("receiver_id",currentUser.id);
+
+    if(error){
+        console.error(error);
+        alert("Não foi possível recusar o convite.");
+        if(button){
+            button.disabled=false;
+            button.textContent="RECUSAR";
+        }
+        return;
+    }
+
+    await renderFriendRequests();
+}
+
+
+async function loadFriends(){
+    if(!currentUser)
+        return [];
+
+    const {data:links,error}=await supabaseClient
+        .from("friends")
+        .select("user_id,friend_id")
+        .or(`user_id.eq.${currentUser.id},friend_id.eq.${currentUser.id}`);
+
+    if(error){
+        console.error(error);
+        return [];
+    }
+
+    const ids=(links||[]).map(x=>
+        x.user_id===currentUser.id ? x.friend_id : x.user_id
+    );
+
+    if(!ids.length)
+        return [];
+
+    const {data,error:playersError}=await supabaseClient
+        .from("players")
+        .select("id,username,player_id,bio,avatar,record,rank_points,coins,owned_cars,selected_car")
+        .in("id",ids);
+
+    if(playersError){
+        console.error(playersError);
+        return [];
+    }
+
+    return players||[];
+}
+
+
+/* RANKING */
+
+function openRanking(){
+    document.getElementById("menu").classList.add("hidden");
+    document.getElementById("ranking").classList.remove("hidden");
+    rankingMode="global";
+    rankingType="record";
+    renderRanking();
+}
+
+function closeRanking(){
+    document.getElementById("ranking").classList.add("hidden");
+    document.getElementById("menu").classList.remove("hidden");
+}
+
+function setRankingType(type){
+    rankingType=type==="ranked" ? "ranked" : "record";
+    const recordBtn=document.getElementById("recordRankBtn");
+    const rankedBtn=document.getElementById("rankedRankBtn");
+    recordBtn?.classList.toggle("active",rankingType==="record");
+    rankedBtn?.classList.toggle("active",rankingType==="ranked");
+    document.getElementById("rankingSubtitle").textContent=
+        rankingType==="ranked" ? "MAIORES PONTOS DE RANQUEADA" : "MAIORES RECORDES";
+    renderRanking();
+}
+
+function setRankingMode(mode){
+    rankingMode=mode;
+    renderRanking();
+}
+
+async function renderRanking(){
+    const list=document.getElementById("rankList");
+    const friendList=document.getElementById("friendList");
+
+    list.innerHTML=`<div style="opacity:.5">Carregando ranking...</div>`;
+    friendList.innerHTML="";
+
+    let sorted=[];
+
+    if(rankingMode==="friends"){
+        const friends=await loadFriends();
+        if(account) friends.push(account);
+        const unique=new Map();
+        friends.forEach(p=>unique.set(p.id,p));
+        sorted=[...unique.values()];
+    }else{
+        const selectBase="id,username,player_id,bio,avatar,record,selected_car";
+        const selectRanked=selectBase+",rank_points";
+        let query=supabaseClient.from("players").select(rankingType==="ranked" ? selectRanked : selectBase);
+        const {data,error}=await query.order(rankingType==="ranked" ? "rank_points" : "record",{ascending:false}).limit(100);
+
+        if(error){
+            console.error("Erro ao carregar ranking:",error);
+            /* Se a coluna rank_points ainda não foi criada, o ranking de recorde
+               continua funcionando e o de patente avisa exatamente o motivo. */
+            if(rankingType==="ranked"){
+                list.innerHTML=`<div style="opacity:.65;line-height:1.5">Ranking de patente indisponível.<br>Adicione a coluna <b>rank_points</b> na tabela players.</div>`;
+                return;
+            }
+            const fallback=await supabaseClient.from("players").select("id,username,player_id,record,selected_car").order("record",{ascending:false}).limit(100);
+            if(fallback.error){
+                console.error("Erro no fallback do ranking:",fallback.error);
+                list.innerHTML=`<div style="opacity:.5">Não foi possível carregar o ranking.</div>`;
+                return;
+            }
+            sorted=fallback.data||[];
+        }else{
+            sorted=data||[];
+        }
+    }
+
+    sorted.sort((a,b)=>{
+        const av=rankingType==="ranked" ? Number(a.rank_points)||0 : Number(a.record)||0;
+        const bv=rankingType==="ranked" ? Number(b.rank_points)||0 : Number(b.record)||0;
+        return bv-av;
+    });
+
+    let html="";
+    window.rankingProfiles={};
+
+    sorted.slice(0,10).forEach((p,i)=>{
+        window.rankingProfiles[p.id]=p;
+        const value=rankingType==="ranked" ? Math.max(0,Number(p.rank_points)||0) : Math.max(0,Number(p.record)||0);
+        const rank=rankingType==="ranked" ? getRank(value) : null;
+        const label=rankingType==="ranked" ? rank[0] : "RECORDE";
+
+        html+=`
+            <div class="rankItem" style="cursor:pointer" onclick='showPublicProfile(rankingProfiles[${JSON.stringify(p.id)}],"ranking")' title="Ver perfil de ${p.username}">
+                <div class="rankNumber">${i+1}</div>
+                <div class="rankAvatar">${p.avatar ? `<img src="${p.avatar}">` : `👤`}</div>
+                <div class="rankPlayer">
+                    ${p.username}
+                    <div class="rankSub">${label}</div>
+                </div>
+                <div class="rankScore">${value.toLocaleString("pt-BR")}</div>
+            </div>
+        `;
+    });
+
+    if(!html) html=`<div style="opacity:.5">Nenhum jogador ainda.</div>`;
+    list.innerHTML=html;
+
+    if(rankingMode==="friends"){
+        friendList.innerHTML=`
+            <div class="friendTitle">AMIGOS</div>
+            <div style="opacity:.5;font-size:11px">Adicione amigos pesquisando pelo ID deles.</div>
+        `;
+    }
+}
+
+
+/* INICIAR */
+
+/* Fallback do botão da loja: garante a navegação mesmo se o HTML
+   tiver sido alterado/copiado por algum editor. */
+document.addEventListener("DOMContentLoaded",()=>{
+    const shopButton=document.getElementById("openShopButton");
+    if(shopButton){
+        shopButton.addEventListener("click",openShop);
+    }
+});
+
+document.querySelectorAll(".screen").forEach(x=>x.classList.add("hidden"));
+
+loop();
+
+loadCurrentAccount();
+</script>
+
+</body>
+</html>
